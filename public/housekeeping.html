@@ -1264,8 +1264,13 @@ function loadRequests() {
     }
 
     isFirstLoad = false;
-    renderRequests();
-    updateCounts();
+    
+    // Debounce re-rendering
+    clearTimeout(window.renderTimeout);
+    window.renderTimeout = setTimeout(() => {
+      renderRequests();
+      updateCounts();
+    }, 300);
   });
 }
 
@@ -1578,7 +1583,7 @@ function getElapsed(ts) {
   return '剛剛';
 }
 
-setInterval(() => { if (Object.keys(allRequests).length) renderRequests(); }, 1000);
+// setInterval(() => { if (Object.keys(allRequests).length) renderRequests(); }, 1000);
 document.addEventListener('click', (event) => {
   const oosTrigger = event.target.closest('.btn-oos[data-oos-request-id]');
   if (oosTrigger) {

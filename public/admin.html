@@ -931,12 +931,15 @@ let selectedFacilityId = null;
 // ── Load ───────────────────────────────────────────────
 onValue(ref(db, 'categories'), (snap) => {
   categories = snap.exists() ? snap.val() : {};
+  if (categories && categories.hasOwnProperty('facilities')) {
+    delete categories.facilities;
+  }
   renderSidebar();
   if (selectedCatId && categories[selectedCatId]) renderCatEditor(selectedCatId);
 });
 
 // Setup dynamic listener for Club Facilities and seed defaults if empty
-onValue(ref(db, 'facilities'), (snap) => {
+onValue(ref(db, 'categories/facilities'), (snap) => {
   facilities = snap.exists() ? snap.val() : {};
   
   if (Object.keys(facilities).length === 0) {
@@ -1019,7 +1022,7 @@ onValue(ref(db, 'facilities'), (snap) => {
       }
     ];
     defaultSecs.forEach(f => {
-      set(ref(db, `facilities/${f.id}`), f);
+      set(ref(db, `categories/facilities/${f.id}`), f);
     });
     facilities = {};
     defaultSecs.forEach(f => {
@@ -1165,7 +1168,7 @@ window.renderFacilityEditor = function(facId) {
 };
 
 window.updateFacilityField = function(facId, field, value) {
-  debouncedSave(`facilities/${facId}/${field}`, value);
+  debouncedSave(`categories/facilities/${facId}/${field}`, value);
 };
 
 window.openAddFacilityModal = function() {
@@ -1187,7 +1190,7 @@ window.addFacility = function() {
   const id = 'fac_' + Date.now();
   const order = Object.keys(facilities).length + 1;
 
-  set(ref(db, `facilities/${id}`), {
+  set(ref(db, `categories/facilities/${id}`), {
     id,
     icon,
     hours,
@@ -1219,7 +1222,7 @@ window.addFacility = function() {
 
 window.deleteFacility = function(facId) {
   if (!confirm('確定要刪除此設施服務？這將使客房端查詢時不再顯示此項目。')) return;
-  remove(ref(db, `facilities/${facId}`)).then(() => {
+  remove(ref(db, `categories/facilities/${facId}`)).then(() => {
     selectedFacilityId = null;
     document.getElementById('mainContent').innerHTML = `
       <div class="empty-main">

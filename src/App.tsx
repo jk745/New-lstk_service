@@ -33,6 +33,21 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
+import { initializeApp } from "firebase/app";
+import { getDatabase, ref, onValue } from "firebase/database";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCFDq7PjC5j--bnHJ9SBglao4_avOCEge8",
+  authDomain: "lakeshore-guest-service.firebaseapp.com",
+  databaseURL: "https://lakeshore-guest-service-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "lakeshore-guest-service",
+  storageBucket: "lakeshore-guest-service.firebasestorage.app",
+  messagingSenderId: "1026886642744",
+  appId: "1:1026886642744:web:225dccc902e0a7d9e00acd"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getDatabase(firebaseApp);
 
 interface RoleCard {
   id: string;
@@ -52,58 +67,122 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<"all" | "ops" | "admin">("all");
 
   const [performanceData, setPerformanceData] = useState([
-    { time: "08:00", dispatches: 8, avgTime: 14 },
-    { time: "10:00", dispatches: 24, avgTime: 18 },
-    { time: "12:00", dispatches: 42, avgTime: 22 },
-    { time: "14:00", dispatches: 38, avgTime: 19 },
-    { time: "16:00", dispatches: 56, avgTime: 16 },
-    { time: "18:00", dispatches: 48, avgTime: 21 },
-    { time: "20:00", dispatches: 35, avgTime: 15 },
-    { time: "22:00", dispatches: 15, avgTime: 12 },
+    { time: "08:00", dispatches: 0, avgTime: 0 },
+    { time: "10:00", dispatches: 0, avgTime: 0 },
+    { time: "12:00", dispatches: 0, avgTime: 0 },
+    { time: "14:00", dispatches: 0, avgTime: 0 },
+    { time: "16:00", dispatches: 0, avgTime: 0 },
+    { time: "18:00", dispatches: 0, avgTime: 0 },
+    { time: "20:00", dispatches: 0, avgTime: 0 },
+    { time: "22:00", dispatches: 0, avgTime: 0 },
   ]);
 
   const [opsMetrics, setOpsMetrics] = useState({
-    pendingTasks: 6,
-    avgCompletionTime: 16.8,
-    onlineStaff: 14
+    pendingTasks: 0,
+    avgCompletionTime: 0,
+    onlineStaff: 0
   });
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setPerformanceData(prev => {
-        return prev.map((item, index) => {
-          if (index === prev.length - 1 || index === prev.length - 2) {
-            const dispOffset = Math.floor(Math.random() * 3) - 1;
-            const timeOffset = Math.floor(Math.random() * 3) - 1;
-            return {
-              ...item,
-              dispatches: Math.max(5, item.dispatches + dispOffset),
-              avgTime: Math.max(8, item.avgTime + timeOffset)
-            };
+    // 1. Listen to requests
+    const requestsRef = ref(db, 'requests');
+    const unsubRequests = onValue(requestsRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      const allRequests: any[] = Object.entries(data).map(([id, val]: [string, any]) => ({
+        id,
+        ...val
+      }));
+
+      // Calculate unresolved pending / assigned / processing tasks
+      const pendingTasksCount = allRequests.filter(r => 
+        r.status === 'pending' || r.status === 'assigned' || r.status === 'processing'
+      ).length;
+
+      // Calculate average completion time (in minutes) for all done tasks
+      const doneRequests = allRequests.filter(r => 
+        r.status === 'done' && r.updatedAt && r.createdAt && r.updatedAt > r.createdAt
+      );
+      const totalDoneDuration = doneRequests.reduce((sum, r) => sum + (r.updatedAt - r.createdAt), 0);
+      const avgTimeMin = doneRequests.length > 0 
+        ? parseFloat((totalDoneDuration / doneRequests.length / 60000).toFixed(1))
+        : 0;
+
+      setOpsMetrics(prev => ({
+        ...prev,
+        pendingTasks: pendingTasksCount,
+        avgCompletionTime: avgTimeMin
+      }));
+
+      // Group today's dispatches into hour slots
+      const today = new Date();
+      const isToday = (timestamp: number) => {
+        const d = new Date(timestamp);
+        return d.getDate() === today.getDate() &&
+               d.getMonth() === today.getMonth() &&
+               d.getFullYear() === today.getFullYear();
+      };
+
+      const todayRequests = allRequests.filter(r => r.createdAt && isToday(r.createdAt));
+
+      // Construct bins
+      const slots = [
+        { time: "08:00", dispatches: 0, totalTime: 0, doneCount: 0 },
+        { time: "10:00", dispatches: 0, totalTime: 0, doneCount: 0 },
+        { time: "12:00", dispatches: 0, totalTime: 0, doneCount: 0 },
+        { time: "14:00", dispatches: 0, totalTime: 0, doneCount: 0 },
+        { time: "16:00", dispatches: 0, totalTime: 0, doneCount: 0 },
+        { time: "18:00", dispatches: 0, totalTime: 0, doneCount: 0 },
+        { time: "20:00", dispatches: 0, totalTime: 0, doneCount: 0 },
+        { time: "22:00", dispatches: 0, totalTime: 0, doneCount: 0 },
+      ];
+
+      todayRequests.forEach(req => {
+        const hrs = new Date(req.createdAt).getHours();
+        let slotTime = "08:00";
+        if (hrs < 10) slotTime = "08:00";
+        else if (hrs < 12) slotTime = "10:00";
+        else if (hrs < 14) slotTime = "12:00";
+        else if (hrs < 16) slotTime = "14:00";
+        else if (hrs < 18) slotTime = "16:00";
+        else if (hrs < 20) slotTime = "18:00";
+        else if (hrs < 22) slotTime = "20:00";
+        else slotTime = "22:00";
+
+        const slot = slots.find(s => s.time === slotTime);
+        if (slot) {
+          slot.dispatches += 1;
+          if (req.status === 'done' && req.updatedAt && req.createdAt && req.updatedAt > req.createdAt) {
+            const diffMin = (req.updatedAt - req.createdAt) / 60000;
+            slot.totalTime += diffMin;
+            slot.doneCount += 1;
           }
-          return item;
-        });
+        }
       });
 
-      setOpsMetrics(prev => {
-        const taskChange = Math.random() > 0.7 ? (Math.random() > 0.5 ? 1 : -1) : 0;
-        const newTasks = Math.max(3, Math.min(12, prev.pendingTasks + taskChange));
-        
-        const timeChange = (Math.random() * 0.6 - 0.3);
-        const newTime = Math.max(12, Math.min(22, prev.avgCompletionTime + timeChange));
+      const finalPerformanceData = slots.map(s => ({
+        time: s.time,
+        dispatches: s.dispatches,
+        avgTime: s.doneCount > 0 ? parseFloat((s.totalTime / s.doneCount).toFixed(1)) : 0
+      }));
 
-        const staffChange = Math.random() > 0.85 ? (Math.random() > 0.5 ? 1 : -1) : 0;
-        const newStaff = Math.max(11, Math.min(16, prev.onlineStaff + staffChange));
+      setPerformanceData(finalPerformanceData);
+    });
 
-        return {
-          pendingTasks: newTasks,
-          avgCompletionTime: parseFloat(newTime.toFixed(1)),
-          onlineStaff: newStaff
-        };
-      });
-    }, 4000);
+    // 2. Listen to online staff via fcm_tokens
+    const fcmRef = ref(db, 'fcm_tokens');
+    const unsubFcm = onValue(fcmRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      const count = Object.keys(data).length;
+      setOpsMetrics(prev => ({
+        ...prev,
+        onlineStaff: count
+      }));
+    });
 
-    return () => clearInterval(interval);
+    return () => {
+      unsubRequests();
+      unsubFcm();
+    };
   }, []);
 
   const handleExportCSV = () => {

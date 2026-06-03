@@ -2013,7 +2013,7 @@ const i18n = {
 };
 
 // Register dynamic listener for Club Facilities and Map attributes properties
-db.ref('facilities').on('value', (snap) => {
+db.ref('categories/facilities').on('value', (snap) => {
   const data = snap.val();
   if (data) {
     facilityData = Object.values(data)
@@ -2364,7 +2364,7 @@ let facilitiesListenerHandler = null;
 
 window.loadFacilities = function() {
   if (facilitiesListenerHandler) {
-    db.ref('facilities').off('value', facilitiesListenerHandler);
+    db.ref('categories/facilities').off('value', facilitiesListenerHandler);
   }
   facilitiesListenerHandler = (snap) => {
     if (snap.exists()) {
@@ -2377,7 +2377,7 @@ window.loadFacilities = function() {
       window.guestFacilities = [];
     }
   };
-  db.ref('facilities').on('value', facilitiesListenerHandler);
+  db.ref('categories/facilities').on('value', facilitiesListenerHandler);
 };
 
 // ── Categories ────────────────────────────────────────
@@ -2388,6 +2388,9 @@ function loadCategories() {
   categoriesListenerHandler = (snap) => {
     if (snap.exists()) {
       const data = snap.val();
+      if (data && data.hasOwnProperty('facilities')) {
+        delete data.facilities;
+      }
       categories = Object.entries(data)
         .map(([id, cat]) => ({ id, ...cat }))
         .filter(c => c.active !== false)

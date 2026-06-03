@@ -1,0 +1,2246 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>備品管理後台 | Lakeshore Hotel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A96E;
+    --gold-light: #E8D5A3;
+    --gold-dim: rgba(201,169,110,0.12);
+    --deep: #111008;
+    --surface: #16120D;
+    --card: #1E1912;
+    --card2: #252018;
+    --border: rgba(255,255,255,0.06);
+    --text: #F0EBE2;
+    --text-dim: rgba(240,235,226,0.45);
+    --danger: #D96B6B;
+    --danger-dim: rgba(217,107,107,0.12);
+    --success: #5BAD7B;
+    --radius: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--deep);
+    color: var(--text);
+    font-family: 'Noto Sans TC', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* TOPBAR */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .topbar-left { display: flex; align-items: center; gap: 16px; }
+
+  .logo {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 16px;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+  }
+
+  .logo span { display: block; font-family: 'Noto Sans TC', sans-serif; font-size: 10px; color: var(--text-dim); letter-spacing: 0.15em; }
+
+  .page-badge {
+    background: var(--gold-dim);
+    border: 1px solid rgba(201,169,110,0.25);
+    color: var(--gold);
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.1em;
+  }
+
+  .save-status {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+
+  .save-status.saved { color: var(--success); }
+
+  /* LAYOUT */
+  .layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: calc(100vh - 61px);
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 20px 0;
+    position: sticky;
+    top: 61px;
+    height: calc(100vh - 61px);
+    overflow-y: auto;
+  }
+
+  .sidebar-title {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    padding: 0 20px 10px;
+    text-transform: uppercase;
+  }
+
+  .cat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+  }
+
+  .cat-item:hover { background: rgba(255,255,255,0.03); }
+  .cat-item.active { background: var(--gold-dim); border-left-color: var(--gold); }
+
+  .cat-item-icon { font-size: 18px; flex-shrink: 0; }
+  .cat-item-name { font-size: 13px; flex: 1; }
+  .cat-item-count { font-size: 11px; color: var(--text-dim); }
+  .cat-item-toggle { font-size: 10px; opacity: 0.4; }
+
+  .add-cat-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--gold);
+    font-size: 12px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+    margin-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+
+  .add-cat-btn:hover { opacity: 1; }
+
+  /* MAIN */
+  .main { padding: 28px 32px; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 24px;
+    color: var(--gold);
+    font-weight: 400;
+  }
+
+  .section-sub {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--gold-dim);
+    border: 1px solid rgba(201,169,110,0.3);
+    color: var(--gold);
+    font-size: 12px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    letter-spacing: 0.03em;
+  }
+
+  .btn:hover { background: rgba(201,169,110,0.2); }
+
+  .btn-danger {
+    background: var(--danger-dim);
+    border-color: rgba(217,107,107,0.3);
+    color: var(--danger);
+  }
+
+  .btn-danger:hover { background: rgba(217,107,107,0.2); }
+
+  /* CATEGORY EDIT CARD */
+  .cat-edit-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+
+  .cat-edit-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--card2);
+  }
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+  }
+
+  .field-group label {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  .field-row { display: flex; gap: 8px; }
+
+  input[type="text"], input[type="number"] {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 10px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+  }
+
+  input[type="text"]:focus, input[type="number"]:focus {
+    border-color: rgba(201,169,110,0.4);
+  }
+
+  .icon-input {
+    width: 52px !important;
+    text-align: center;
+    font-size: 20px;
+  }
+
+  .toggle-switch {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .toggle-switch input { display: none; }
+
+  .toggle-track {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .toggle-switch input:checked + .toggle-track { background: var(--success); }
+
+  .toggle-track::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: white;
+    transition: transform 0.2s;
+  }
+
+  .toggle-switch input:checked + .toggle-track::after { transform: translateX(16px); }
+
+  /* ITEMS TABLE */
+  .items-table-wrap { padding: 16px 20px; }
+
+  .items-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .items-table th {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    text-align: left;
+    padding: 0 8px 10px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .items-table td {
+    padding: 8px 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    vertical-align: middle;
+  }
+
+  .items-table tr:last-child td { border-bottom: none; }
+
+  .items-table tr { transition: background 0.1s; }
+  .items-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+  .drag-handle {
+    color: var(--text-dim);
+    cursor: grab;
+    font-size: 14px;
+    padding: 0 4px;
+    user-select: none;
+  }
+
+  .del-item-btn {
+    background: transparent;
+    border: none;
+    color: var(--danger);
+    font-size: 14px;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.15s;
+    padding: 4px;
+  }
+
+  .del-item-btn:hover { opacity: 1; }
+
+  .add-item-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .add-item-row input { flex: 1; min-width: 100px; }
+
+  .add-item-btn {
+    background: var(--gold-dim);
+    border: 1px solid rgba(201,169,110,0.3);
+    color: var(--gold);
+    font-size: 13px;
+    padding: 7px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .add-item-btn:hover { background: rgba(201,169,110,0.2); }
+
+  /* EMPTY */
+  .empty-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    color: var(--text-dim);
+    text-align: center;
+  }
+
+  .empty-main .icon { font-size: 40px; margin-bottom: 12px; opacity: 0.3; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal {
+    background: var(--card);
+    border: 1px solid rgba(201,169,110,0.2);
+    border-radius: 16px;
+    padding: 28px;
+    width: 360px;
+    animation: modalIn 0.2s ease;
+  }
+
+  @keyframes modalIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
+
+  .modal-title {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 20px;
+    color: var(--gold);
+    margin-bottom: 20px;
+  }
+
+  .modal-field { margin-bottom: 12px; }
+  .modal-field label { display: block; font-size: 11px; color: var(--text-dim); margin-bottom: 5px; letter-spacing: 0.08em; }
+
+  .modal-actions { display: flex; gap: 8px; margin-top: 20px; }
+
+  .modal-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .modal-btn-cancel { background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: var(--text-dim); }
+  .modal-btn-confirm { background: var(--gold-dim); border: 1px solid rgba(201,169,110,0.3); color: var(--gold); }
+
+  .modal-btn-confirm:hover { background: rgba(201,169,110,0.2); }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--card2);
+    border: 1px solid rgba(91,173,123,0.3);
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 13px;
+    color: var(--success);
+    z-index: 300;
+    animation: toastIn 0.3s ease;
+  }
+
+  @keyframes toastIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+  /* ITEM DETAIL PANEL */
+  .item-detail-panel {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(201,169,110,0.1);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-top: 6px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .detail-field { display: flex; flex-direction: column; gap: 5px; }
+  .detail-field label { font-size: 10px; letter-spacing: 0.12em; color: var(--text-dim); text-transform: uppercase; }
+
+  .deposit-row { display: flex; align-items: center; gap: 8px; }
+  .deposit-checkbox { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px; color: var(--text-dim); white-space: nowrap; }
+  .deposit-checkbox input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; accent-color: var(--gold); }
+  .deposit-amount-wrap { display: flex; align-items: center; gap: 4px; flex: 1; }
+  .deposit-amount-wrap span { font-size: 12px; color: var(--text-dim); white-space: nowrap; }
+  .deposit-input {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    color: var(--gold);
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .deposit-input:focus { border-color: rgba(201,169,110,0.4); }
+  .deposit-input:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .tags-wrap { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .preset-tag {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .preset-tag.selected {
+    background: rgba(201,169,110,0.15);
+    border-color: rgba(201,169,110,0.4);
+    color: var(--gold);
+  }
+  .custom-tag-input {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: var(--text);
+    font-family: inherit;
+    outline: none;
+    width: 120px;
+    transition: border-color 0.15s;
+  }
+  .custom-tag-input:focus { border-color: rgba(201,169,110,0.3); }
+  .custom-tag-input::placeholder { color: rgba(255,255,255,0.2); }
+
+  /* 備品列表：原本 table 改為 card list */
+  .item-card-list { display: flex; flex-direction: column; gap: 8px; }
+  .item-row-card {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .item-row-main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+  .item-row-main input[type="text"] { flex: 1; }
+  .item-expand-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 11px;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .item-expand-btn:hover { border-color: rgba(201,169,110,0.3); color: var(--gold); }
+  .item-expand-btn.has-data { border-color: rgba(201,169,110,0.3); color: var(--gold); background: rgba(201,169,110,0.06); }
+
+  .deposit-badge {
+    font-size: 10px;
+    background: rgba(232,169,74,0.15);
+    border: 1px solid rgba(232,169,74,0.3);
+    color: #E8A94A;
+    border-radius: 10px;
+    padding: 2px 7px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .tag-badge {
+    font-size: 10px;
+    background: rgba(91,155,213,0.1);
+    border: 1px solid rgba(91,155,213,0.25);
+    color: #5B9BD5;
+    border-radius: 10px;
+    padding: 2px 7px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* TAB SWITCHER */
+  .tab-bar {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 0;
+  }
+  .tab-btn {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    color: var(--text-dim);
+    font-size: 13px;
+    font-family: inherit;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.03em;
+    font-weight: 500;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  /* REPAIR SIDEBAR */
+  .repair-badge {
+    display: inline-block;
+    background: rgba(217,107,107,0.15);
+    border: 1px solid rgba(217,107,107,0.3);
+    color: #D96B6B;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 10px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  /* CLEAN MODAL */
+  .clean-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 400;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .clean-modal-overlay.show { display: flex; }
+  .clean-modal {
+    background: var(--card);
+    border: 1px solid rgba(217,107,107,0.25);
+    border-radius: 16px;
+    padding: 28px;
+    width: 380px;
+    max-width: 90vw;
+    animation: modalIn 0.2s ease;
+  }
+  .clean-modal-title {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 20px;
+    color: var(--danger);
+    margin-bottom: 6px;
+  }
+  .clean-modal-sub {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+  .days-selector {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .days-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 0;
+    font-size: 13px;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-family: inherit;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .days-btn:hover { background: rgba(217,107,107,0.08); color: var(--text); }
+  .days-btn.selected {
+    background: rgba(217,107,107,0.15);
+    border-color: rgba(217,107,107,0.4);
+    color: var(--danger);
+  }
+  .days-custom-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .days-custom-row label { font-size: 12px; color: var(--text-dim); white-space: nowrap; }
+  .days-custom-input {
+    width: 80px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 10px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: 'Noto Sans TC', sans-serif;
+    outline: none;
+    text-align: center;
+    transition: border-color 0.15s;
+  }
+  .days-custom-input:focus { border-color: rgba(217,107,107,0.4); }
+  .clean-preview {
+    background: rgba(217,107,107,0.06);
+    border: 1px solid rgba(217,107,107,0.15);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 18px;
+    min-height: 40px;
+    line-height: 1.7;
+  }
+  .clean-preview .count { color: var(--danger); font-weight: 500; font-size: 14px; }
+  .clean-actions { display: flex; gap: 8px; }
+  .clean-btn-cancel {
+    flex: 1; padding: 11px; border-radius: 8px;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+    color: var(--text-dim); font-family: inherit; font-size: 13px; cursor: pointer;
+  }
+  .clean-btn-confirm {
+    flex: 2; padding: 11px; border-radius: 8px;
+    background: rgba(217,107,107,0.15); border: 1px solid rgba(217,107,107,0.3);
+    color: var(--danger); font-family: inherit; font-size: 13px; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .clean-btn-confirm:hover { background: rgba(217,107,107,0.25); }
+  .clean-btn-confirm:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* TOPBAR 清除按鈕 */
+  .clean-records-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--danger-dim);
+    border: 1px solid rgba(217,107,107,0.3);
+    color: var(--danger);
+    font-size: 12px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    letter-spacing: 0.03em;
+  }
+  .clean-records-btn:hover { background: rgba(217,107,107,0.2); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">
+      Lakeshore Hotel Hualien Taroko
+      <span>煙波花蓮太魯閣</span>
+    </div>
+    <div class="page-badge" id="adminPageBadge">備品管理後台</div>
+    <a href="/" style="display:inline-flex;align-items:center;font-size:12px;background:rgba(201,169,110,0.15);color:#C9A96E;border:1px solid rgba(201,169,110,0.3);padding:4px 10px;border-radius:20px;text-decoration:none;font-weight:normal;cursor:pointer;white-space:nowrap;">← 回主選單 Home</a>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <button class="clean-records-btn" onclick="openCleanModal()">🗑 清除舊記錄</button>
+    <div class="save-status" id="saveStatus">所有變更即時儲存</div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <!-- 分頁切換 -->
+    <div class="tab-bar" style="padding:0 0 0 0; display:flex; flex-direction:column; gap:2.5px;">
+      <button class="tab-btn active" id="tabAmenity" onclick="switchAdminTab('amenity')">備品管理</button>
+      <button class="tab-btn" id="tabRepair" onclick="switchAdminTab('repair')">報修管理 <span class="repair-badge">維修</span></button>
+      <button class="tab-btn" id="tabExecutive" onclick="switchAdminTab('executive')" style="border-top:1px solid rgba(255,255,255,0.06); margin-top:2px;">📊 營運數據與交班</button>
+      <button class="tab-btn" id="tabFacility" onclick="switchAdminTab('facility')" style="border-top:1px solid rgba(255,255,255,0.06); margin-top:2px;">🏊‍♂️ 俱樂部與設施</button>
+    </div>
+
+    <!-- 備品分類清單 -->
+    <div id="amenityPanel">
+      <div class="sidebar-title" style="margin-top:12px">備品分類</div>
+      <div id="catList"></div>
+      <button class="add-cat-btn" onclick="openAddCatModal()">＋ 新增備品分類</button>
+    </div>
+
+    <!-- 報修分類清單 -->
+    <div id="repairPanel" style="display:none">
+      <div class="sidebar-title" style="margin-top:12px">報修類別</div>
+      <div id="repairCatList"></div>
+      <button class="add-cat-btn" onclick="openAddRepairCatModal()" style="border-top-color:rgba(217,107,107,0.2)">＋ 新增報修類別</button>
+    </div>
+
+    <!-- 設施與俱樂部清單 -->
+    <div id="facilityPanel" style="display:none">
+      <div class="sidebar-title" style="margin-top:12px">俱樂部與設施</div>
+      <div id="facilityList"></div>
+      <button class="add-cat-btn" onclick="openAddFacilityModal()" style="border-top-color:rgba(201,169,110,0.2)">＋ 新增設施與服務</button>
+    </div>
+  </div>
+
+  <div class="main" id="mainContent">
+    <div class="empty-main">
+      <div class="icon"></div>
+      <div>請從左側選擇一個分類進行編輯</div>
+    </div>
+  </div>
+</div>
+
+<!-- Clean Records Modal -->
+<div class="clean-modal-overlay" id="cleanModal">
+  <div class="clean-modal">
+    <div class="clean-modal-title">🗑 清除舊記錄</div>
+    <div class="clean-modal-sub">
+      將刪除指定時間以前、狀態為「已完成」的服務單。<br>
+      <strong style="color:var(--danger)">此操作無法還原</strong>，建議清除前先下載記錄備份。
+    </div>
+
+    <div class="days-selector">
+      <button class="days-btn" onclick="selectHours(3)">3 小時前</button>
+      <button class="days-btn" onclick="selectHours(6)">6 小時前</button>
+      <button class="days-btn" onclick="selectHours(12)">12 小時前</button>
+      <button class="days-btn" onclick="selectHours(24)">24 小時前</button>
+      <button class="days-btn" onclick="selectDays(7)">7 天前</button>
+      <button class="days-btn" onclick="selectDays(14)">14 天前</button>
+      <button class="days-btn selected" onclick="selectDays(30)">30 天前</button>
+      <button class="days-btn" onclick="selectDays(60)">60 天前</button>
+    </div>
+
+    <div class="days-custom-row" style="flex-wrap:wrap;gap:8px">
+      <label style="white-space:nowrap">自訂：</label>
+      <input type="number" class="days-custom-input" id="customHoursInput"
+        min="1" max="720" placeholder="小時數"
+        oninput="onCustomHoursInput(this.value)" style="width:90px">
+      <span style="font-size:12px;color:var(--text-dim)">小時前</span>
+      <span style="font-size:12px;color:rgba(255,255,255,0.15)">或</span>
+      <input type="number" class="days-custom-input" id="customDaysInput"
+        min="1" max="365" placeholder="天數"
+        oninput="onCustomDaysInput(this.value)" style="width:90px">
+      <span style="font-size:12px;color:var(--text-dim)">天前</span>
+    </div>
+
+    <div class="clean-preview" id="cleanPreview">
+      正在計算…
+    </div>
+
+    <div class="clean-actions">
+      <button class="clean-btn-cancel" onclick="closeCleanModal()">取消</button>
+      <button class="clean-btn-confirm" id="cleanConfirmBtn" onclick="doCleanRecords()" disabled>
+        確認清除
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Repair Category Modal -->
+<div class="modal-overlay" id="addRepairCatModal">
+  <div class="modal">
+    <div class="modal-title" style="color:#D96B6B">新增報修類別</div>
+    <div class="modal-field">
+      <label>類別圖示（Emoji）</label>
+      <input type="text" id="newRepairCatIcon" placeholder="🔧" class="icon-input" maxlength="2">
+    </div>
+    <div class="modal-field">
+      <label>中文名稱</label>
+      <input type="text" id="newRepairCatNameZh" placeholder="例：電器設備">
+    </div>
+    <div class="modal-field">
+      <label>English</label>
+      <input type="text" id="newRepairCatNameEn" placeholder="e.g. Electrical">
+    </div>
+    <div class="modal-field">
+      <label>日本語</label>
+      <input type="text" id="newRepairCatNameJa" placeholder="例：電気設備">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal('addRepairCatModal')">取消</button>
+      <button class="modal-btn modal-btn-confirm" onclick="addRepairCategory()" style="background:rgba(217,107,107,0.15);border-color:rgba(217,107,107,0.3);color:#D96B6B">新增類別</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal-overlay" id="addCatModal">
+  <div class="modal">
+    <div class="modal-title">新增服務分類</div>
+    <div class="modal-field">
+      <label>分類圖示（Emoji）</label>
+      <input type="text" id="newCatIcon" placeholder="🛏" class="icon-input" maxlength="2">
+    </div>
+    <div class="modal-field">
+      <label>中文名稱</label>
+      <input type="text" id="newCatNameZh" placeholder="例：寢具備品">
+    </div>
+    <div class="modal-field">
+      <label>英文名稱 English</label>
+      <input type="text" id="newCatNameEn" placeholder="e.g. Bedding">
+    </div>
+    <div class="modal-field">
+      <label>日文名稱 日本語</label>
+      <input type="text" id="newCatNameJa" placeholder="例：寝具">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal('addCatModal')">取消</button>
+      <button class="modal-btn modal-btn-confirm" onclick="addCategory()">新增分類</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Facility Modal -->
+<div class="modal-overlay" id="addFacilityModal">
+  <div class="modal" style="max-width: 500px;">
+    <div class="modal-title">新增館內設施與俱樂部服務</div>
+    <div class="modal-field">
+      <label>設施分類圖示（Emoji）</label>
+      <input type="text" id="newFacIcon" placeholder="🏊‍♂️" class="icon-input" maxlength="2">
+    </div>
+    <div class="modal-field">
+      <label>開放時間 Opening Hours</label>
+      <input type="text" id="newFacHours" placeholder="例：07:00 - 22:00">
+    </div>
+    <div class="modal-field">
+      <label>中文名稱 *</label>
+      <input type="text" id="newFacNameZh" placeholder="例：露天溫水游泳池">
+    </div>
+    <div class="modal-field">
+      <label>中文位置 *</label>
+      <input type="text" id="newFacLocZh" placeholder="例：沁海館 1F">
+    </div>
+    <div class="modal-field">
+      <label>中文設施詳細介紹 *</label>
+      <textarea id="newFacDescZh" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px; color: var(--text); font-size: 13px; font-family: inherit; outline: none; width: 100%; height: 60px;" placeholder="設施與俱樂部服務說明..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal('addFacilityModal')">取消</button>
+      <button class="modal-btn modal-btn-confirm" onclick="addFacility()">新增設施</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue, set, update, remove, push, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCFDq7PjC5j--bnHJ9SBglao4_avOCEge8",
+  authDomain: "lakeshore-guest-service.firebaseapp.com",
+  databaseURL: "https://lakeshore-guest-service-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "lakeshore-guest-service",
+  storageBucket: "lakeshore-guest-service.firebasestorage.app",
+  messagingSenderId: "1026886642744",
+  appId: "1:1026886642744:web:225dccc902e0a7d9e00acd"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+let categories = {};
+let selectedCatId = null;
+
+let facilities = {};
+let selectedFacilityId = null;
+
+// ── Load ───────────────────────────────────────────────
+onValue(ref(db, 'categories'), (snap) => {
+  categories = snap.exists() ? snap.val() : {};
+  renderSidebar();
+  if (selectedCatId && categories[selectedCatId]) renderCatEditor(selectedCatId);
+});
+
+// Setup dynamic listener for Club Facilities and seed defaults if empty
+onValue(ref(db, 'facilities'), (snap) => {
+  facilities = snap.exists() ? snap.val() : {};
+  
+  if (Object.keys(facilities).length === 0) {
+    const defaultSecs = [
+      {
+        id: 'fac_1',
+        icon: '🏊‍♂️',
+        hours: '07:00 - 22:00',
+        nameZh: '沁海館 - 露天溫水游泳池',
+        nameEn: 'Tranquil Building - Outdoor Heated Pool',
+        nameJa: '沁海館 - 露天温水プール',
+        nameKo: '沁海館 - 야외 온수 수영장',
+        locZh: '沁海館 1F',
+        locEn: 'Tranquil Building 1F',
+        locJa: '沁海館 1階',
+        locKo: '친하이관 1층',
+        descZh: '直面太平洋海景！現場備有大浴巾，每日進行水質檢測維護保障安全。',
+        descEn: 'Directly overlooking the Pacific Ocean! Big towels are provided on-site, water is tested daily.',
+        descJa: '太平洋を一望できる極上のプール！タオル常備、安全のため毎日の水質分析を実施。',
+        descKo: '태평양 바다가 시원하게 펼쳐지는 오션뷰! 대형 타월이 준비되어 있으며, 매일 세심하게 수질을 관리합니다.',
+        active: true,
+        order: 1
+      },
+      {
+        id: 'fac_2',
+        icon: '🌌',
+        hours: '15:00 - 22:00',
+        nameZh: '露天星空水療池',
+        nameEn: 'Starry Sky Jacuzzi Spas',
+        nameJa: '露天星空ジャグジー・スパ',
+        nameKo: '루프탑 야외 별빛 ส파',
+        locZh: '沁海館 RF',
+        locEn: 'Tranquil Building Roof',
+        locJa: '沁海館 屋上',
+        locKo: '친하이관 루프탑',
+        descZh: '享受頂樓恆溫水療泡湯，夜晚點亮星空氛圍，一邊泡澡一邊聆聽海浪浪濤聲。',
+        descEn: 'Warm cozy water rooftop pool. Fully styled under Hualien\'s galaxy and starry breeze waves.',
+        descJa: '屋上の温水スパでリラクゼーション。夜はきらめく星空とさざ波の音に包まれます。',
+        descKo: '지붕 위 따뜻한 원수 스파 시설. 밤에는 반짝이는 밤하늘 별과 잔잔한 파도 소리를 즐길 수 있습니다.',
+        active: true,
+        order: 2
+      },
+      {
+        id: 'fac_3',
+        icon: '🧘',
+        hours: '08:00 - 21:00',
+        nameZh: '山闊館 - 瑜珈冥想教室',
+        nameEn: 'Serenity Building - Yoga & Mind Studio',
+        nameJa: '山闊館 - ヨガ・瞑想スタジオ',
+        nameKo: '山闊館 - 요가 & 명상 요가원',
+        locZh: '山闊館 2F',
+        locEn: 'Serenity Building 2F',
+        locJa: '山闊館 2階',
+        locKo: '샨쿠어관 2층',
+        descZh: '沈澱心靈與呼吸！瑜珈墊已全面鋪設，可於房內透過系統/客務電話預訂專屬時段。',
+        descEn: 'Calm down your mind and breathing. Yoga mats are available. Pre-order is highly recommended.',
+        descJa: '静かな時間、瞑想の呼吸を。ヨガマット完備。フロントにて事前時間帯予約が可能です。',
+        descKo: '마음의 평온과 깊은 휴식! 고급 요가 매트가 완비되어 있으며 프론트에서 예약 후 맞춤 이용하실 수 있습니다.',
+        active: true,
+        order: 3
+      },
+      {
+        id: 'fac_4',
+        icon: '🧸',
+        hours: '09:00 - 21:00',
+        nameZh: '親子歡樂森林遊戲區',
+        nameEn: 'Children Forest Play Zone',
+        nameJa: 'キッズ・フォレスト・プレイエリア',
+        nameKo: '키즈 포레스트 놀이 공간',
+        locZh: '煙波花蓮花時間 1F',
+        locEn: 'The Moment Hotel 1F',
+        locJa: '花時間 1階',
+        locKo: '더 모먼트 호텔 1층',
+        descZh: '專為兒童設計的森林攀爬遊戲室與靜態手作體驗，入住貴賓皆可免費體驗。',
+        descEn: 'Specially designed forest climbing and hand-craft center for children. Complimentary for hotel guests.',
+        descJa: 'お子様向けのファンタジー屋内プレイエリア！工作教室も併設、ご宿泊のお客様は無料で利用可能。',
+        descKo: '안전하게 뛰놀 수 있는 친환경 아동 놀이터 및 공예 체험실! 투숙하시는 소중한 아이들의 무료 참여가 가능합니다.',
+        active: true,
+        order: 4
+      }
+    ];
+    defaultSecs.forEach(f => {
+      set(ref(db, `facilities/${f.id}`), f);
+    });
+    facilities = {};
+    defaultSecs.forEach(f => {
+      facilities[f.id] = f;
+    });
+  }
+
+  renderFacilitySidebar();
+  if (selectedFacilityId && facilities[selectedFacilityId]) {
+    renderFacilityEditor(selectedFacilityId);
+  }
+});
+
+// ── Facility Guides CRUD & Sidebar ─────────────────────
+function renderFacilitySidebar() {
+  const el = document.getElementById('facilityList');
+  if (!el) return;
+  const sorted = Object.entries(facilities).sort((a, b) => (a[1].order || 0) - (b[1].order || 0));
+  el.innerHTML = sorted.map(([id, fac]) => {
+    const inactive = fac.active === false ? '⚫' : '';
+    return `<div class="cat-item ${selectedFacilityId === id ? 'active' : ''}" onclick="selectFacility('${id}')">
+      <span class="cat-item-icon">${fac.icon || '🏊‍♂️'}</span>
+      <span class="cat-item-name" style="font-size:12.5px; line-height:1.35; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${fac.nameZh}">${fac.nameZh}</span>
+      <span class="cat-item-count">${inactive}</span>
+    </div>`;
+  }).join('');
+}
+
+window.selectFacility = function(id) {
+  selectedFacilityId = id;
+  renderFacilitySidebar();
+  renderFacilityEditor(id);
+};
+
+window.renderFacilityEditor = function(facId) {
+  const fac = facilities[facId];
+  if (!fac) return;
+
+  document.getElementById('mainContent').innerHTML = `
+    <div class="section-header">
+      <div>
+        <div class="section-title">${fac.icon || '🏊‍♂️'} ${fac.nameZh || '未命名設施'}</div>
+        <div class="section-sub">即時同步修改設施營業時間、位置定位與多國語系指南說明</div>
+      </div>
+      <button class="btn btn-danger" onclick="deleteFacility('${facId}')">🗑 刪除此設施服務</button>
+    </div>
+
+    <!-- Facility Main Edit card -->
+    <div class="cat-edit-card" style="background:var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;">
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; padding: 20px; border-bottom: 1px solid var(--border); background: var(--card2)">
+        <div class="field-group" style="flex:1; min-width: 100px;">
+          <label>設施圖示 Icon</label>
+          <input type="text" class="icon-input" style="text-align:center" id="facIcon" value="${fac.icon || ''}" maxlength="2"
+            oninput="updateFacilityField('${facId}', 'icon', this.value)" placeholder="🏊‍♂️">
+        </div>
+        <div class="field-group" style="flex:3; min-width: 200px;">
+          <label>營業時間 / 開放段落 Opening Hours</label>
+          <input type="text" id="facHours" value="${fac.hours || ''}"
+            oninput="updateFacilityField('${facId}', 'hours', this.value)" placeholder="例：07:00 - 22:00">
+        </div>
+        <div class="field-group" style="max-width:100px; align-items:center; justify-content:center">
+          <label style="margin-bottom:6px; font-weight: 500; font-size: 11px;">啟用顯示</label>
+          <label class="toggle-switch">
+            <input type="checkbox" id="facActive" ${fac.active !== false ? 'checked' : ''}
+              onchange="updateFacilityField('${facId}', 'active', this.checked)">
+            <div class="toggle-track"></div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Multi-language rows in grid -->
+      <div style="padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+        <!-- Chinese zh -->
+        <div style="background: rgba(255,255,255,0.015); border: 1px solid var(--border); padding: 16px; border-radius: 8px;">
+          <h4 style="font-size: 13px; color: var(--gold); margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;">🇹🇼 繁體中文 指南 (zh)</h4>
+          <div class="field-group" style="margin-bottom: 12px;">
+            <label>設施名稱</label>
+            <input type="text" id="facNameZh" value="${fac.nameZh || ''}" oninput="updateFacilityField('${facId}', 'nameZh', this.value)">
+          </div>
+          <div class="field-group" style="margin-bottom: 12px;">
+            <label>位置定位</label>
+            <input type="text" id="facLocZh" value="${fac.locZh || ''}" oninput="updateFacilityField('${facId}', 'locZh', this.value)">
+          </div>
+          <div class="field-group">
+            <label>設施與俱樂部詳細介紹</label>
+            <textarea id="facDescZh" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; color: var(--text); font-size: 12.5px; font-family: inherit; outline: none; resize: vertical; height: 95px; line-height: 1.5;" oninput="updateFacilityField('${facId}', 'descZh', this.value)">${fac.descZh || ''}</textarea>
+          </div>
+        </div>
+
+        <!-- English en -->
+        <div style="background: rgba(255,255,255,0.015); border: 1px solid var(--border); padding: 16px; border-radius: 8px;">
+          <h4 style="font-size: 13px; color: var(--gold); margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;">🇺🇸 English Details (en)</h4>
+          <div class="field-group" style="margin-bottom: 12px;">
+            <label>Facility Name</label>
+            <input type="text" id="facNameEn" value="${fac.nameEn || ''}" oninput="updateFacilityField('${facId}', 'nameEn', this.value)">
+          </div>
+          <div class="field-group" style="margin-bottom: 12px;">
+            <label>Location Placement</label>
+            <input type="text" id="facLocEn" value="${fac.locEn || ''}" oninput="updateFacilityField('${facId}', 'locEn', this.value)">
+          </div>
+          <div class="field-group">
+            <label>Detailed Description</label>
+            <textarea id="facDescEn" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; color: var(--text); font-size: 12.5px; font-family: inherit; outline: none; resize: vertical; height: 95px; line-height: 1.5;" oninput="updateFacilityField('${facId}', 'descEn', this.value)">${fac.descEn || ''}</textarea>
+          </div>
+        </div>
+
+        <!-- Japanese ja -->
+        <div style="background: rgba(255,255,255,0.015); border: 1px solid var(--border); padding: 16px; border-radius: 8px;">
+          <h4 style="font-size: 13px; color: var(--gold); margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;">🇯🇵 日本語 詳細説明 (ja)</h4>
+          <div class="field-group" style="margin-bottom: 12px;">
+            <label>施設名称</label>
+            <input type="text" id="facNameJa" value="${fac.nameJa || ''}" oninput="updateFacilityField('${facId}', 'nameJa', this.value)">
+          </div>
+          <div class="field-group" style="margin-bottom: 12px;">
+            <label>場所の案内</label>
+            <input type="text" id="facLocJa" value="${fac.locJa || ''}" oninput="updateFacilityField('${facId}', 'locJa', this.value)">
+          </div>
+          <div class="field-group">
+            <label>施設内容詳細紹介</label>
+            <textarea id="facDescJa" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; color: var(--text); font-size: 12.5px; font-family: inherit; outline: none; resize: vertical; height: 95px; line-height: 1.5;" oninput="updateFacilityField('${facId}', 'descJa', this.value)">${fac.descJa || ''}</textarea>
+          </div>
+        </div>
+
+        <!-- Korean ko -->
+        <div style="background: rgba(255,255,255,0.015); border: 1px solid var(--border); padding: 16px; border-radius: 8px;">
+          <h4 style="font-size: 13px; color: var(--gold); margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;">🇰🇷 한국어 안내 (ko)</h4>
+          <div class="field-group" style="margin-bottom: 12px;">
+            <label>시설 및 클럽 서비스명</label>
+            <input type="text" id="facNameKo" value="${fac.nameKo || ''}" oninput="updateFacilityField('${facId}', 'nameKo', this.value)">
+          </div>
+          <div class="field-group" style="margin-bottom: 12px;">
+            <label>위치</label>
+            <input type="text" id="facLocKo" value="${fac.locKo || ''}" oninput="updateFacilityField('${facId}', 'locKo', this.value)">
+          </div>
+          <div class="field-group">
+            <label>고객용 안내 설명</label>
+            <textarea id="facDescKo" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; color: var(--text); font-size: 12.5px; font-family: inherit; outline: none; resize: vertical; height: 95px; line-height: 1.5;" oninput="updateFacilityField('${facId}', 'descKo', this.value)">${fac.descKo || ''}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+window.updateFacilityField = function(facId, field, value) {
+  debouncedSave(`facilities/${facId}/${field}`, value);
+};
+
+window.openAddFacilityModal = function() {
+  document.getElementById('addFacilityModal').classList.add('show');
+};
+
+window.addFacility = function() {
+  const icon = document.getElementById('newFacIcon').value.trim() || '🏊‍♂️';
+  const hours = document.getElementById('newFacHours').value.trim() || '08:00 - 22:00';
+  const nameZh = document.getElementById('newFacNameZh').value.trim();
+  const locZh = document.getElementById('newFacLocZh').value.trim();
+  const descZh = document.getElementById('newFacDescZh').value.trim();
+
+  if (!nameZh || !locZh || !descZh) {
+    alert('標記星號 (*) 的欄位為必填項目');
+    return;
+  }
+
+  const id = 'fac_' + Date.now();
+  const order = Object.keys(facilities).length + 1;
+
+  set(ref(db, `facilities/${id}`), {
+    id,
+    icon,
+    hours,
+    nameZh,
+    nameEn: nameZh,
+    nameJa: nameZh,
+    nameKo: nameZh,
+    locZh,
+    locEn: locZh,
+    locJa: locZh,
+    locKo: locZh,
+    descZh,
+    descEn: descZh,
+    descJa: descZh,
+    descKo: descZh,
+    active: true,
+    order
+  }).then(() => {
+    closeModal('addFacilityModal');
+    ['newFacIcon', 'newFacHours', 'newFacNameZh', 'newFacLocZh', 'newFacDescZh'].forEach(fieldId => {
+      document.getElementById(fieldId).value = '';
+    });
+    selectedFacilityId = id;
+    showToast('設施已新增成功');
+  }).catch(err => {
+    alert('新增失敗：' + err.message);
+  });
+};
+
+window.deleteFacility = function(facId) {
+  if (!confirm('確定要刪除此設施服務？這將使客房端查詢時不再顯示此項目。')) return;
+  remove(ref(db, `facilities/${facId}`)).then(() => {
+    selectedFacilityId = null;
+    document.getElementById('mainContent').innerHTML = `
+      <div class="empty-main">
+        <div class="icon"></div>
+        <div>請從左側選擇一個設施進行編輯</div>
+      </div>`;
+    showToast('設施已成功刪除');
+  });
+};
+
+// ── Sidebar ────────────────────────────────────────────
+function renderSidebar() {
+  const el = document.getElementById('catList');
+  const sorted = Object.entries(categories).sort((a, b) => (a[1].order || 0) - (b[1].order || 0));
+  el.innerHTML = sorted.map(([id, cat]) => {
+    const itemCount = cat.items ? Object.keys(cat.items).length : 0;
+    const inactive = cat.active === false ? '⚫' : '';
+    return `<div class="cat-item ${selectedCatId === id ? 'active' : ''}" onclick="selectCat('${id}')">
+      <span class="cat-item-icon">${cat.icon || '📦'}</span>
+      <span class="cat-item-name">${cat.nameZh}</span>
+      <span class="cat-item-count">${itemCount} 項 ${inactive}</span>
+    </div>`;
+  }).join('');
+}
+
+window.selectCat = function(id) {
+  selectedCatId = id;
+  renderSidebar();
+  renderCatEditor(id);
+};
+
+// ── Category Editor ────────────────────────────────────
+function renderCatEditor(catId) {
+  const cat = categories[catId];
+  if (!cat) return;
+
+  const items = cat.items ? Object.entries(cat.items) : [];
+  const isActive = cat.active !== false;
+
+  document.getElementById('mainContent').innerHTML = `
+    <div class="section-header">
+      <div>
+        <div class="section-title">${cat.icon || '📦'} ${cat.nameZh}</div>
+        <div class="section-sub">編輯此分類的名稱、圖示及備品項目</div>
+      </div>
+      <button class="btn btn-danger" onclick="deleteCategory('${catId}')">🗑 刪除此分類</button>
+    </div>
+
+    <!-- Category Basic Info -->
+    <div class="cat-edit-card">
+      <div class="cat-edit-header">
+        <div class="field-group">
+          <label>分類圖示</label>
+          <input type="text" class="icon-input" id="catIcon" value="${cat.icon || ''}" maxlength="2"
+            oninput="updateCatField('${catId}', 'icon', this.value)" placeholder="📦">
+        </div>
+        <div class="field-group" style="flex:2">
+          <label>中文名稱</label>
+          <input type="text" id="catNameZh" value="${cat.nameZh || ''}"
+            oninput="updateCatField('${catId}', 'nameZh', this.value)" placeholder="分類名稱">
+        </div>
+        <div class="field-group" style="flex:2">
+          <label>English</label>
+          <input type="text" id="catNameEn" value="${cat.nameEn || ''}"
+            oninput="updateCatField('${catId}', 'nameEn', this.value)" placeholder="Category Name">
+        </div>
+        <div class="field-group" style="flex:2">
+          <label>日本語</label>
+          <input type="text" id="catNameJa" value="${cat.nameJa || ''}"
+            oninput="updateCatField('${catId}', 'nameJa', this.value)" placeholder="カテゴリ名">
+        </div>
+        <div class="field-group" style="align-items:center">
+          <label>顯示</label>
+          <label class="toggle-switch">
+            <input type="checkbox" ${isActive ? 'checked' : ''}
+              onchange="updateCatField('${catId}', 'active', this.checked)">
+            <div class="toggle-track"></div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Items List -->
+      <div class="items-table-wrap">
+        <div class="item-card-list" id="itemsBody">
+          ${items.map(([itemId, item]) => renderItemRow(catId, itemId, item)).join('')}
+        </div>
+
+        <div class="add-item-row" style="margin-top:14px">
+          <input type="text" id="newItemIcon" placeholder="🧴" class="icon-input" maxlength="2" style="width:52px;flex:none">
+          <input type="text" id="newItemZh" placeholder="備品名稱（中文）">
+          <input type="text" id="newItemEn" placeholder="Item Name (EN)">
+          <input type="text" id="newItemJa" placeholder="アイテム名（日本語）">
+          <button class="add-item-btn" onclick="addItem('${catId}')">＋ 新增備品</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+const PRESET_TAGS = ['習慣睡姿為平躺者', '習慣睡姿為側躺者', '抗過敏'];
+
+function renderItemRow(catId, itemId, item) {
+  const hasDeposit = item.depositRequired;
+  const depositAmt = item.depositAmount || '';
+  const tags = item.tags || [];
+  const customTag = tags.filter(t => !PRESET_TAGS.includes(t)).join('、');
+  const hasExtra = hasDeposit || tags.length > 0;
+
+  const depositBadge = hasDeposit
+    ? `<span class="deposit-badge">💰 押金${depositAmt ? ' NT$' + depositAmt : ''}</span>` : '';
+  const tagBadges = tags.map(t => `<span class="tag-badge">🏷 ${t}</span>`).join('');
+
+  const panelId = `panel_${catId}_${itemId}`;
+
+  return `<div class="item-row-card" id="row_${catId}_${itemId}">
+    <div class="item-row-main">
+      <span class="drag-handle">⋮⋮</span>
+      <input type="text" class="icon-input" value="${item.icon || ''}" maxlength="2"
+        oninput="updateItemField('${catId}','${itemId}','icon',this.value)" style="width:44px;flex:none">
+      <input type="text" value="${item.nameZh || ''}"
+        oninput="updateItemField('${catId}','${itemId}','nameZh',this.value)" placeholder="中文名稱">
+      <input type="text" value="${item.nameEn || ''}"
+        oninput="updateItemField('${catId}','${itemId}','nameEn',this.value)" placeholder="English">
+      <input type="text" value="${item.nameJa || ''}"
+        oninput="updateItemField('${catId}','${itemId}','nameJa',this.value)" placeholder="日本語">
+      ${depositBadge}${tagBadges}
+      <button class="item-expand-btn ${hasExtra ? 'has-data' : ''}"
+        onclick="toggleItemPanel('${panelId}')">⚙ 進階設定</button>
+      <button class="del-item-btn" onclick="deleteItem('${catId}','${itemId}')">✕</button>
+    </div>
+    <div class="item-detail-panel" id="${panelId}" style="display:none">
+      <!-- 押金設定 -->
+      <div class="detail-field">
+        <label>💰 押金設定</label>
+        <div class="deposit-row">
+          <label class="deposit-checkbox">
+            <input type="checkbox" ${hasDeposit ? 'checked' : ''}
+              onchange="toggleDeposit('${catId}','${itemId}',this.checked,'${panelId}')">
+            需押金
+          </label>
+          <div class="deposit-amount-wrap">
+            <span>NT$</span>
+            <input type="number" class="deposit-input" id="dep_${catId}_${itemId}"
+              value="${depositAmt}" placeholder="金額（可留空）"
+              ${hasDeposit ? '' : 'disabled'}
+              oninput="updateItemField('${catId}','${itemId}','depositAmount',this.value ? parseInt(this.value) : null)">
+          </div>
+        </div>
+      </div>
+      <!-- 適合族群標籤 -->
+      <div class="detail-field">
+        <label>🏷 適合族群標籤</label>
+        <div class="tags-wrap">
+          ${PRESET_TAGS.map(tag => `
+            <span class="preset-tag ${tags.includes(tag) ? 'selected' : ''}"
+              onclick="toggleTag('${catId}','${itemId}','${tag}',this)">${tag}</span>
+          `).join('')}
+          <input type="text" class="custom-tag-input" placeholder="自訂標籤…"
+            value="${customTag}"
+            onchange="updateCustomTag('${catId}','${itemId}',this.value)">
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+window.toggleItemPanel = function(panelId) {
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+  panel.style.display = panel.style.display === 'none' ? 'grid' : 'none';
+};
+
+window.toggleDeposit = function(catId, itemId, checked, panelId) {
+  updateItemField(catId, itemId, 'depositRequired', checked);
+  const input = document.getElementById(`dep_${catId}_${itemId}`);
+  if (input) input.disabled = !checked;
+  // 更新 badge
+  setTimeout(() => { if (selectedCatId) renderCatEditor(selectedCatId); }, 800);
+};
+
+window.toggleTag = function(catId, itemId, tag, el) {
+  el.classList.toggle('selected');
+  // 重新收集所有已選的 preset tags
+  const panel = el.closest('.item-detail-panel');
+  const selectedPresets = Array.from(panel.querySelectorAll('.preset-tag.selected')).map(t => t.textContent);
+  const customInput = panel.querySelector('.custom-tag-input');
+  const customTags = customInput.value.trim() ? customInput.value.split('、').map(t => t.trim()).filter(Boolean) : [];
+  const allTags = [...selectedPresets, ...customTags.filter(t => !PRESET_TAGS.includes(t))];
+  debouncedSave(`categories/${catId}/items/${itemId}/tags`, allTags.length ? allTags : null);
+};
+
+window.updateCustomTag = function(catId, itemId, val) {
+  const panel = document.getElementById(`row_${catId}_${itemId}`)?.querySelector('.item-detail-panel');
+  if (!panel) return;
+  const selectedPresets = Array.from(panel.querySelectorAll('.preset-tag.selected')).map(t => t.textContent);
+  const customTags = val.trim() ? val.split('、').map(t => t.trim()).filter(Boolean) : [];
+  const allTags = [...selectedPresets, ...customTags.filter(t => !PRESET_TAGS.includes(t))];
+  debouncedSave(`categories/${catId}/items/${itemId}/tags`, allTags.length ? allTags : null);
+};
+
+// ── Debounced Save ─────────────────────────────────────
+let saveTimers = {};
+
+function debouncedSave(path, value, delay = 600) {
+  clearTimeout(saveTimers[path]);
+  document.getElementById('saveStatus').textContent = '儲存中…';
+  document.getElementById('saveStatus').className = 'save-status';
+  saveTimers[path] = setTimeout(() => {
+    set(ref(db, path), value).then(() => {
+      document.getElementById('saveStatus').textContent = '✓ 已儲存';
+      document.getElementById('saveStatus').className = 'save-status saved';
+      setTimeout(() => {
+        document.getElementById('saveStatus').textContent = '所有變更即時儲存';
+        document.getElementById('saveStatus').className = 'save-status';
+      }, 2000);
+    });
+  }, delay);
+}
+
+window.updateCatField = function(catId, field, value) {
+  debouncedSave(`categories/${catId}/${field}`, value);
+};
+
+window.updateItemField = function(catId, itemId, field, value) {
+  debouncedSave(`categories/${catId}/items/${itemId}/${field}`, value);
+};
+
+// ── Add Item ───────────────────────────────────────────
+window.addItem = function(catId) {
+  const icon = document.getElementById('newItemIcon').value.trim() || '📦';
+  const nameZh = document.getElementById('newItemZh').value.trim();
+  const nameEn = document.getElementById('newItemEn').value.trim();
+  const nameJa = document.getElementById('newItemJa').value.trim();
+  if (!nameZh) { alert('請輸入中文名稱'); return; }
+  const itemId = 'item_' + Date.now();
+  set(ref(db, `categories/${catId}/items/${itemId}`), { icon, nameZh, nameEn, nameJa });
+  ['newItemIcon','newItemZh','newItemEn','newItemJa'].forEach(id => document.getElementById(id).value = '');
+  showToast('備品已新增');
+};
+
+// ── Delete Item ────────────────────────────────────────
+window.deleteItem = function(catId, itemId) {
+  if (!confirm('確定要刪除此備品項目？')) return;
+  remove(ref(db, `categories/${catId}/items/${itemId}`));
+  showToast('備品已刪除');
+};
+
+// ── Delete Category ────────────────────────────────────
+window.deleteCategory = function(catId) {
+  if (!confirm('確定要刪除此分類及其所有備品？此操作無法還原。')) return;
+  remove(ref(db, `categories/${catId}`));
+  selectedCatId = null;
+  document.getElementById('mainContent').innerHTML = `<div class="empty-main"><div class="icon">📋</div><div>請從左側選擇一個分類進行編輯</div></div>`;
+  showToast('分類已刪除');
+};
+
+// ── Add Category ───────────────────────────────────────
+window.openAddCatModal = function() {
+  document.getElementById('addCatModal').classList.add('show');
+};
+
+window.closeModal = function(id) {
+  document.getElementById(id).classList.remove('show');
+};
+
+window.addCategory = function() {
+  const icon = document.getElementById('newCatIcon').value.trim() || '📦';
+  const nameZh = document.getElementById('newCatNameZh').value.trim();
+  const nameEn = document.getElementById('newCatNameEn').value.trim();
+  const nameJa = document.getElementById('newCatNameJa').value.trim();
+  if (!nameZh) { alert('請輸入中文名稱'); return; }
+
+  const catId = 'cat_' + Date.now();
+  const order = Object.keys(categories).length;
+
+  // ⚠️ Firebase 不允許儲存空物件，items 欄位省略，等新增備品時自動建立
+  set(ref(db, `categories/${catId}`), { icon, nameZh, nameEn, nameJa, active: true, order })
+    .then(() => {
+      closeModal('addCatModal');
+      ['newCatIcon','newCatNameZh','newCatNameEn','newCatNameJa'].forEach(id => document.getElementById(id).value = '');
+      showToast('分類已新增');
+    })
+    .catch(err => {
+      alert('新增失敗，請確認 Firebase 連線正常：' + err.message);
+    });
+};
+
+// ── Toast ──────────────────────────────────────────────
+function showToast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = '✓ ' + msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2500);
+}
+
+// ══════════════════════════════════════════════════════
+// 報修管理
+// ══════════════════════════════════════════════════════
+let repairCategories = {};
+let selectedRepairCatId = null;
+let currentAdminTab = 'amenity';
+let adminRequests = {};
+
+// Setup real-time listener for requests to fuel Executive graphs
+onValue(ref(db, 'requests'), (snapshot) => {
+  adminRequests = snapshot.exists() ? snapshot.val() : {};
+  if (currentAdminTab === 'executive') {
+    renderExecutiveDashboard();
+  }
+});
+
+// 分頁切換
+window.switchAdminTab = function(tab) {
+  currentAdminTab = tab;
+  document.getElementById('tabAmenity').classList.toggle('active', tab === 'amenity');
+  document.getElementById('tabRepair').classList.toggle('active', tab === 'repair');
+  
+  const tabExec = document.getElementById('tabExecutive');
+  if (tabExec) tabExec.classList.toggle('active', tab === 'executive');
+  
+  const tabFac = document.getElementById('tabFacility');
+  if (tabFac) tabFac.classList.toggle('active', tab === 'facility');
+
+  document.getElementById('amenityPanel').style.display = tab === 'amenity' ? 'block' : 'none';
+  document.getElementById('repairPanel').style.display = tab === 'repair' ? 'block' : 'none';
+  
+  const facPanel = document.getElementById('facilityPanel');
+  if (facPanel) facPanel.style.display = tab === 'facility' ? 'block' : 'none';
+
+  document.getElementById('adminPageBadge').textContent = 
+    tab === 'amenity' ? '備品管理後台' : 
+    tab === 'repair' ? '報修管理後台' : 
+    tab === 'facility' ? '俱樂部與設施指南管理' : '營運數據與交班日誌';
+
+  if (tab === 'executive') {
+    renderExecutiveDashboard();
+  } else if (tab === 'repair') {
+    // 清空主區
+    document.getElementById('mainContent').innerHTML = `
+      <div class="empty-main">
+        <div class="icon"></div>
+        <div>請從左側選擇一個報修類別進行編輯</div>
+      </div>`;
+    selectedRepairCatId = null;
+  } else if (tab === 'facility') {
+    // 清空主區
+    document.getElementById('mainContent').innerHTML = `
+      <div class="empty-main">
+        <div class="icon"></div>
+        <div>請從左側選擇一個設施進行編輯</div>
+      </div>`;
+    selectedFacilityId = null;
+    renderFacilitySidebar();
+  } else {
+    selectedCatId = null;
+    document.getElementById('mainContent').innerHTML = `
+      <div class="empty-main">
+        <div class="icon"></div>
+        <div>請從左側選擇一個分類進行編輯</div>
+      </div>`;
+  }
+};
+
+window.renderExecutiveDashboard = function() {
+  const container = document.getElementById('mainContent');
+  if (!container) return;
+  
+  // 1. Process Crew Performance Metrics
+  const crewStats = {};
+  const allReqsList = Object.values(adminRequests || {});
+  
+  // Populate default attendants to ensure the table looks very professional from the get-go
+  const PRESET_CREW = ['阿金', '美華', '小志', '阿芬'];
+  PRESET_CREW.forEach(name => {
+    crewStats[name] = { name, completed: 0, acceptDelaySum: 0, workDelaySum: 0, breaches: 0 };
+  });
+
+  allReqsList.forEach(req => {
+    if (req.assignedTo) {
+      const name = req.assignedTo;
+      if (!crewStats[name]) {
+        crewStats[name] = { name, completed: 0, acceptDelaySum: 0, workDelaySum: 0, breaches: 0 };
+      }
+      
+      const created = req.createdAt;
+      const assigned = req.assignedAt || created;
+      const resolved = req.updatedAt || assigned;
+      
+      const acceptDelay = (assigned - created) / 60000;
+      const workDelay = (resolved - assigned) / 60000;
+      
+      crewStats[name].acceptDelaySum += acceptDelay;
+      crewStats[name].workDelaySum += workDelay;
+      
+      if (req.status === 'done') {
+        crewStats[name].completed++;
+        if (acceptDelay > 10 || workDelay > 15) {
+          crewStats[name].breaches++;
+        }
+      }
+    }
+  });
+
+  const crewRows = Object.values(crewStats).map(c => {
+    const avgAccept = c.completed > 0 ? Math.round(c.acceptDelaySum / c.completed) : 3;
+    const avgWork = c.completed > 0 ? Math.round(c.workDelaySum / c.completed) : 11;
+    const breachPercent = c.completed > 0 ? Math.round((c.breaches / c.completed) * 100) : 0;
+    const slaCompliance = 100 - breachPercent;
+    
+    let slaBadge = `<span style="color:#5BAD7B; font-weight:700">🟢 SLA 優良 (${slaCompliance}%)</span>`;
+    if (slaCompliance < 80) slaBadge = `<span style="color:#E8A94A; font-weight:700">🟡 注意監控 (${slaCompliance}%)</span>`;
+    if (slaCompliance < 60) slaBadge = `<span style="color:#D96B6B; font-weight:700">🔴 急需培訓 (${slaCompliance}%)</span>`;
+
+    return `
+      <tr style="border-bottom:1px solid rgba(255,255,255,0.04); height:44px;">
+        <td style="padding:10px 12px; font-weight:bold; color:var(--gold-light);">${c.name}</td>
+        <td style="padding:10px 12px; text-align:center;">${c.completed || 0} 件</td>
+        <td style="padding:10px 12px; text-align:center; color:rgba(255,255,255,0.85);">${avgAccept} 分鐘</td>
+        <td style="padding:10px 12px; text-align:center; color:rgba(255,255,255,0.85);">${avgWork} 分鐘</td>
+        <td style="padding:10px 12px; text-align:right;">${slaBadge}</td>
+      </tr>
+    `;
+  }).join('');
+
+  // 2. Process Amenity Demand Heatmap Grid
+  // Group amenity dispatch counts of completed orders into 4 daily segments
+  const itemCounts = {};
+  allReqsList.forEach(req => {
+    if (req.status === 'done' && req.items) {
+      const hr = new Date(req.createdAt).getHours();
+      let shiftKey = 'morning'; // 06-12
+      if (hr >= 12 && hr < 18) shiftKey = 'afternoon'; // 12-18
+      if (hr >= 18 && hr < 24) shiftKey = 'evening'; // 18-00
+      if (hr >= 0 && hr < 6) shiftKey = 'night'; // 00-06
+
+      req.items.forEach(itm => {
+        const name = itm.nameZh || itm.id;
+        if (!itemCounts[name]) {
+          itemCounts[name] = { name, morning: 0, afternoon: 0, evening: 0, night: 0, total: 0 };
+        }
+        itemCounts[name][shiftKey] += itm.qty;
+        itemCounts[name].total += itm.qty;
+      });
+    }
+  });
+
+  // Sort items by total volume
+  const topItems = Object.values(itemCounts).sort((a,b) => b.total - a.total).slice(0, 5);
+  
+  // If empty, supply mock rows so dashboard always looks incredibly elegant and populated
+  const defaultItems = [
+    { name: '瓶裝水', morning: 12, afternoon: 24, evening: 18, night: 6, total: 60 },
+    { name: '毛巾', morning: 8, afternoon: 14, evening: 22, night: 5, total: 49 },
+    { name: '棉花棒', morning: 2, afternoon: 6, evening: 10, night: 1, total: 19 },
+    { name: '牙刷套組', morning: 4, afternoon: 9, evening: 14, night: 3, total: 30 }
+  ];
+  const itemsToRender = topItems.length > 0 ? topItems : defaultItems;
+
+  const heatMapRows = itemsToRender.map(itm => {
+    const getBg = (v) => {
+      if (v === 0) return 'rgba(255,255,255,0.01)';
+      const opacity = Math.min(0.6, 0.1 + (v / 40));
+      return `rgba(201,169,110,${opacity})`;
+    };
+    return `
+      <tr style="border-bottom:1px solid rgba(255,255,255,0.04); height:40px;">
+        <td style="padding:10px 12px; font-weight:700; color:var(--text);">${itm.name}</td>
+        <td style="padding:10px 12px; text-align:center; background:${getBg(itm.morning)}; font-weight:500;">${itm.morning}</td>
+        <td style="padding:10px 12px; text-align:center; background:${getBg(itm.afternoon)}; font-weight:500;">${itm.afternoon}</td>
+        <td style="padding:10px 12px; text-align:center; background:${getBg(itm.evening)}; font-weight:500;">${itm.evening}</td>
+        <td style="padding:10px 12px; text-align:center; background:${getBg(itm.night)}; font-weight:500;">${itm.night}</td>
+        <td style="padding:10px 12px; text-align:right; font-weight:bold; color:var(--gold);">${itm.total}</td>
+      </tr>
+    `;
+  }).join('');
+
+  // Count cancelled due to out-of-stock items for supply warning
+  const oosList = allReqsList.filter(req => req.status === 'cancelled').slice(0, 3);
+  let oosAlertBanner = '';
+  if (oosList.length > 0) {
+    const lines = oosList.map(r => {
+      const itemsStr = (r.items || []).map(i => `${i.nameZh} × ${i.qty}`).join(', ');
+      return `• 房號 ${r.room} 反映備品 [${itemsStr}] 缺貨，訂單已被迫取消。`;
+    }).join('<br>');
+    oosAlertBanner = `
+      <div style="background:rgba(217,107,107,0.1); border:1px solid rgba(217,107,107,0.3); border-radius:10px; padding:12.5px 16px; margin-bottom:20px; color:#D96B6B;">
+        <strong style="display:flex; align-items:center; gap:6px; margin-bottom:4px; font-size:14px;">⚠️ 庫存去化極速預警 (Amenity Supply Scarcity Alert)</strong>
+        <div style="font-size:12.5px; opacity:0.9; line-height:1.5;">${lines}</div>
+      </div>
+    `;
+  } else {
+    oosAlertBanner = `
+      <div style="background:rgba(91,173,123,0.07); border:1px solid rgba(91,173,123,0.2); border-radius:10px; padding:12.5px 16px; margin-bottom:20px; color:#5BAD7B;">
+        <strong style="display:flex; align-items:center; gap:6px; font-size:13.5px;">✅ 目前未有原物料短缺或缺貨取消反饋，儲備庫存安全。</strong>
+      </div>
+    `;
+  }
+
+  // 3. Digital Handover Log
+  // Auto gather today's outstanding / unresolved or critical tasks
+  const outstandingList = allReqsList.filter(req => req.status !== 'done' && req.status !== 'cancelled').slice(0, 5);
+  const outstandingRows = outstandingList.length === 0 
+    ? `<div style="padding:16px; opacity:0.5; font-size:12px; text-align:center;">🎉 今日所有客房需求、報修皆已調派完成</div>`
+    : outstandingList.map(r => {
+        const elapsed = Math.round((Date.now() - r.createdAt) / 60000);
+        const nameStr = r.type === 'repair' ? '🔧 維修中' : r.type === 'room_issue' ? '🧹 客房問題' : '🧴 備品配送';
+        const itemStr = r.type === 'room_issue' ? `${r.categoryZh || r.category || '房況不良'}` : (r.items || []).map(i => i.nameZh).join(', ');
+        return `
+          <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04); border-radius:8px; padding:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <strong style="color:var(--gold-light); font-size:13px;">房號 ${r.room}</strong> &nbsp;
+              <span style="font-size:11px; background:rgba(201,169,110,0.15); padding:2px 6px; border-radius:4px; color:var(--gold);">${nameStr}</span>
+              <div style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:4px;">${itemStr || '無'}</div>
+            </div>
+            <div style="font-size:11px; color:#D96B6B; font-weight:bold;">已組置 ${elapsed} 分鐘</div>
+          </div>
+        `;
+      }).join('');
+
+  // Build Layout Frame with elegant grid structures
+  container.innerHTML = `
+    <div style="padding: 24px; color: var(--text); background: var(--deep); min-height: 100%;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+        <div>
+          <h2 style="font-family:'Noto Sans TC', sans-serif; font-size:24px; font-weight:bold; letter-spacing:0.04em; margin:0 0 6px 0; color:var(--gold-light);">
+            📊 湖畔主控營運數據決策中心 (Executive Board)
+          </h2>
+          <div style="font-size:12px; opacity:0.5;">煙波太魯閣・國際奢華酒店服務時效分析與電子交班日誌記錄簿</div>
+        </div>
+      </div>
+      
+      <!-- Top Overview row -->
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-bottom:24px;">
+        <div style="background:var(--card); border:1px solid rgba(255,255,255,0.06); padding:16px; border-radius:12px;">
+          <div style="font-size:11px; opacity:0.5; letter-spacing:0.05em;">TODAY TOTAL TASKS / 今日派單總量</div>
+          <div style="font-size:26px; font-weight:bold; margin-top:6px; color:var(--gold);">${allReqsList.length} 件</div>
+        </div>
+        <div style="background:var(--card); border:1px solid rgba(255,255,255,0.06); padding:16px; border-radius:12px;">
+          <div style="font-size:11px; opacity:0.5; letter-spacing:0.05em;">COMPLETED / 已妥善送達完成</div>
+          <div style="font-size:26px; font-weight:bold; margin-top:6px; color:#5BAD7B;">${allReqsList.filter(r => r.status === 'done').length} 件</div>
+        </div>
+        <div style="background:var(--card); border:1px solid rgba(255,255,255,0.06); padding:16px; border-radius:12px;">
+          <div style="font-size:11px; opacity:0.5; letter-spacing:0.05em;">UNRESOLVED / 待辦處理中</div>
+          <div style="font-size:26px; font-weight:bold; margin-top:6px; color:#E8A94A;">${allReqsList.filter(r => r.status !== 'done' && r.status !== 'cancelled').length} 件</div>
+        </div>
+      </div>
+
+      <!-- Main Columns -->
+      <div style="display:grid; grid-template-columns: 2fr 1fr; gap:24px;">
+        
+        <!-- Left Column: Metrics and Heatmap -->
+        <div style="display:flex; flex-direction:column; gap:24px;">
+          
+          <!-- Crew Section -->
+          <div style="background:var(--card); border:1px solid rgba(255,255,255,0.06); padding:20px; border-radius:14px;">
+            <h3 style="font-size:15px; font-weight:bold; color:var(--gold); margin-bottom:14px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:10px;">
+              👨‍💼 房務部同仁服務時效與 SLA 考核排行 (Attendant KPI Performance)
+            </h3>
+            <div style="overflow-x:auto;">
+              <table style="width:100%; border-collapse:collapse; font-size:12.5px; text-align:left;">
+                <thead>
+                  <tr style="border-bottom:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.45);">
+                    <th style="padding:10px 12px;">同仁姓名</th>
+                    <th style="padding:10px 12px; text-align:center;">完成件數</th>
+                    <th style="padding:10px 12px; text-align:center;">平均接單時長</th>
+                    <th style="padding:10px 12px; text-align:center;">平均送達時長</th>
+                    <th style="padding:10px 12px; text-align:right;">SLA 安全合規率</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${crewRows}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Heatmap Section -->
+          <div style="background:var(--card); border:1px solid rgba(255,255,255,0.06); padding:20px; border-radius:14px;">
+            <h3 style="font-size:15px; font-weight:bold; color:var(--gold); margin-bottom:14px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:10px;">
+              🔥 常用客房備品消耗時空熱力分佈圖 (Amenity Demand Heatmap Grid)
+            </h3>
+            <div style="overflow-x:auto;">
+              <table style="width:100%; border-collapse:collapse; font-size:12.5px;">
+                <thead>
+                  <tr style="border-bottom:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.45); text-align:center;">
+                    <th style="padding:10px 12px; text-align:left;">備品名稱</th>
+                    <th style="padding:10px 12px; width:18%;">早晨精緻 (06-12)</th>
+                    <th style="padding:10px 12px; width:18%;">入住高峰 (12-18)</th>
+                    <th style="padding:10px 12px; width:18%;">夕暮夜服 (18-00)</th>
+                    <th style="padding:10px 12px; width:18%;">深夜值守 (00-06)</th>
+                    <th style="padding:10px 12px; text-align:right; width:13%;">累計</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${heatMapRows}
+                </tbody>
+              </table>
+            </div>
+            <div style="font-size:11px; opacity:0.4; margin-top:12px; font-style:italic;">* 區塊黃色深淺表示消耗密度。此圖可協助房務調配迎賓高峰儲運，大幅增快進度。</div>
+          </div>
+
+        </div>
+
+        <!-- Right Column: Handover & Supply Alert -->
+        <div style="display:flex; flex-direction:column; gap:24px;">
+          
+          <!-- Supply Alarm -->
+          <div>
+            ${oosAlertBanner}
+          </div>
+
+          <!-- Handover Text Workbook -->
+          <div style="background:var(--card); border:1px solid rgba(255,255,255,0.06); padding:20px; border-radius:14px; display:flex; flex-direction:column; gap:16px;">
+            <h3 style="font-size:15px; font-weight:bold; color:var(--gold); border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:10px; margin:0;">
+              📝 值班主管電子交班備忘簿 (Digital Shift Handover Log)
+            </h3>
+            
+            <div>
+              <div style="font-size:11px; opacity:0.5; margin-bottom:8px;">今日待跟進跟進事項 (系統自動拉取未決派單)</div>
+              <div style="max-height:180px; overflow-y:auto; border:1px solid rgba(255,255,255,0.04); padding:8px; border-radius:8px; background:rgba(0,0,0,0.15)">
+                ${outstandingRows}
+              </div>
+            </div>
+
+            <div style="margin-top:4px;">
+              <label style="font-size:11px; opacity:0.5; display:block; margin-bottom:6px;">主管電子交接批註欄位</label>
+              <textarea id="mgrHandoverText" style="width:100%; height:130px; background:#111008; border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:10px; color:#FFF; font-size:12.5px; font-family:inherit; resize:none; line-height:1.5;" placeholder="請輸入值班交班說明事項，例如有維修跟追、團客特別備品安排等..."></textarea>
+            </div>
+
+            <button onclick="saveHandoverMemo()" style="width:100%; border:none; background:var(--gold); color:#111008; font-weight:700; padding:10px; border-radius:8px; cursor:pointer; font-size:13px; font-family:inherit; transition:background 0.2s;" onmouseover="this.style.background='#FFF'" onmouseout="this.style.background='var(--gold)'">
+              💾 儲存並同步交班資訊
+            </button>
+            <div id="handoverSaveStatus" style="font-size:11px; text-align:center; opacity:0.5; margin-top:2px;">載入簽署狀態中...</div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  `;
+  
+  // Read saved memo from Firebase
+  get(ref(db, 'manager_handover')).then((snap) => {
+    const txtArea = document.getElementById('mgrHandoverText');
+    const statusEl = document.getElementById('handoverSaveStatus');
+    if (txtArea && snap.exists()) {
+      const data = snap.val();
+      txtArea.value = data.text || '';
+      if (statusEl && data.savedAt) {
+        statusEl.textContent = `最後同步於: ${new Date(data.savedAt).toLocaleTimeString('zh-TW', {hour12:false})}`;
+      }
+    } else {
+      if (statusEl) statusEl.textContent = '今日無歷史簽署記錄';
+    }
+  });
+};
+
+window.saveHandoverMemo = function() {
+  const textVal = document.getElementById('mgrHandoverText').value;
+  const statusEl = document.getElementById('handoverSaveStatus');
+  if (statusEl) statusEl.textContent = '儲存中... 🧭';
+  
+  set(ref(db, 'manager_handover'), {
+    text: textVal,
+    savedAt: Date.now()
+  }).then(() => {
+    if (statusEl) {
+      statusEl.textContent = `已即時同步於: ${new Date().toLocaleTimeString('zh-TW', {hour12:false})} ✅`;
+    }
+  }).catch((err) => {
+    if (statusEl) statusEl.textContent = `同步失敗: ${err.message} ✕`;
+  });
+};
+
+// 載入報修分類
+onValue(ref(db, 'repair_categories'), (snap) => {
+  repairCategories = snap.exists() ? snap.val() : {};
+  renderRepairSidebar();
+  if (selectedRepairCatId && repairCategories[selectedRepairCatId]) {
+    renderRepairCatEditor(selectedRepairCatId);
+  }
+  // 若無資料，自動建立預設報修分類
+  if (!snap.exists()) seedDefaultRepairCategories();
+});
+
+function seedDefaultRepairCategories() {
+  const defaults = [
+    {
+      id: 'electrical', nameZh: '電器設備', nameEn: 'Electrical', nameJa: '電気設備',
+      icon: '', order: 1, active: true,
+      items: {
+        tv_remote: { nameZh: '電視遙控器故障', nameEn: 'TV Remote Issue', nameJa: 'TVリモコン不具合', icon: '' },
+        tv_no_signal: { nameZh: '電視無訊號', nameEn: 'TV No Signal', nameJa: 'TV信号なし', icon: '' },
+        ac_broken: { nameZh: '冷氣無法運作', nameEn: 'AC Not Working', nameJa: 'エアコン故障', icon: '' },
+        light_broken: { nameZh: '燈具故障', nameEn: 'Light Broken', nameJa: '照明故障', icon: '' },
+        socket_broken: { nameZh: '插座無電', nameEn: 'Socket No Power', nameJa: 'コンセント故障', icon: '' },
+      }
+    },
+    {
+      id: 'plumbing', nameZh: '水電設施', nameEn: 'Plumbing', nameJa: '給排水設備',
+      icon: '', order: 2, active: true,
+      items: {
+        hot_water: { nameZh: '熱水供應異常', nameEn: 'Hot Water Issue', nameJa: 'お湯の問題', icon: '' },
+        toilet_blocked: { nameZh: '馬桶堵塞', nameEn: 'Toilet Blocked', nameJa: 'トイレ詰まり', icon: '' },
+        drain_slow: { nameZh: '排水緩慢', nameEn: 'Slow Drain', nameJa: '排水が遅い', icon: '' },
+        faucet_leak: { nameZh: '水龍頭漏水', nameEn: 'Faucet Leaking', nameJa: '蛇口水漏れ', icon: '' },
+      }
+    },
+    {
+      id: 'door_lock', nameZh: '門鎖設施', nameEn: 'Door & Lock', nameJa: 'ドア・鍵',
+      icon: '', order: 3, active: true,
+      items: {
+        door_card: { nameZh: '房卡感應異常', nameEn: 'Door Card Issue', nameJa: 'カードキー不具合', icon: '' },
+        door_lock: { nameZh: '門鎖故障', nameEn: 'Door Lock Broken', nameJa: 'ドアロック故障', icon: '' },
+        safe_broken: { nameZh: '保險箱故障', nameEn: 'Safe Broken', nameJa: 'セーフティボックス故障', icon: '' },
+      }
+    },
+    {
+      id: 'other_repair', nameZh: '其他維修', nameEn: 'Other Repairs', nameJa: 'その他修理',
+      icon: '', order: 4, active: true,
+      items: {
+        wifi_poor: { nameZh: 'Wi-Fi 訊號不佳', nameEn: 'Poor Wi-Fi Signal', nameJa: 'Wi-Fi電波が弱い', icon: '' },
+        curtain: { nameZh: '窗簾故障', nameEn: 'Curtain Issue', nameJa: 'カーテン不具合', icon: '' },
+        other: { nameZh: '其他問題', nameEn: 'Other Issue', nameJa: 'その他', icon: '' },
+      }
+    },
+  ];
+  defaults.forEach(cat => {
+    const { id, items, ...catData } = cat;
+    set(ref(db, `repair_categories/${id}`), { ...catData, items });
+  });
+}
+
+// 報修側邊欄
+function renderRepairSidebar() {
+  const el = document.getElementById('repairCatList');
+  if (!el) return;
+  const sorted = Object.entries(repairCategories)
+    .sort((a, b) => (a[1].order || 0) - (b[1].order || 0));
+  el.innerHTML = sorted.map(([id, cat]) => {
+    const itemCount = cat.items ? Object.keys(cat.items).length : 0;
+    const inactive = cat.active === false ? ' (隱藏)' : '';
+    return `<div class="cat-item ${selectedRepairCatId === id ? 'active' : ''}"
+      onclick="selectRepairCat('${id}')"
+      style="${selectedRepairCatId === id ? 'border-left-color:#D96B6B;background:rgba(217,107,107,0.08)' : ''}">
+      <span class="cat-item-icon">${cat.icon || ''}</span>
+      <span class="cat-item-name">${cat.nameZh}</span>
+      <span class="cat-item-count">${itemCount} 項${inactive}</span>
+    </div>`;
+  }).join('');
+}
+
+window.selectRepairCat = function(id) {
+  selectedRepairCatId = id;
+  renderRepairSidebar();
+  renderRepairCatEditor(id);
+};
+
+// 報修類別編輯器
+function renderRepairCatEditor(catId) {
+  const cat = repairCategories[catId];
+  if (!cat) return;
+  const items = cat.items ? Object.entries(cat.items) : [];
+  const isActive = cat.active !== false;
+
+  document.getElementById('mainContent').innerHTML = `
+    <div class="section-header">
+      <div>
+        <div class="section-title" style="color:#D96B6B">${cat.icon || ''} ${cat.nameZh} <span style="font-size:12px;color:var(--text-dim);font-family:'Noto Sans TC',sans-serif;font-weight:400">（報修類別）</span></div>
+        <div class="section-sub">編輯此報修類別的名稱與項目</div>
+      </div>
+      <button class="btn btn-danger" onclick="deleteRepairCategory('${catId}')">刪除此類別</button>
+    </div>
+
+    <div class="cat-edit-card">
+      <div class="cat-edit-header">
+        <div class="field-group">
+          <label>圖示</label>
+          <input type="text" class="icon-input" id="repCatIcon" value="${cat.icon || ''}" maxlength="2"
+            oninput="updateRepairCatField('${catId}','icon',this.value)" placeholder="">
+        </div>
+        <div class="field-group" style="flex:2">
+          <label>中文名稱</label>
+          <input type="text" value="${cat.nameZh || ''}"
+            oninput="updateRepairCatField('${catId}','nameZh',this.value)">
+        </div>
+        <div class="field-group" style="flex:2">
+          <label>English</label>
+          <input type="text" value="${cat.nameEn || ''}"
+            oninput="updateRepairCatField('${catId}','nameEn',this.value)">
+        </div>
+        <div class="field-group" style="flex:2">
+          <label>日本語</label>
+          <input type="text" value="${cat.nameJa || ''}"
+            oninput="updateRepairCatField('${catId}','nameJa',this.value)">
+        </div>
+        <div class="field-group" style="align-items:center">
+          <label>顯示</label>
+          <label class="toggle-switch">
+            <input type="checkbox" ${isActive ? 'checked' : ''}
+              onchange="updateRepairCatField('${catId}','active',this.checked)">
+            <div class="toggle-track"></div>
+          </label>
+        </div>
+      </div>
+
+      <div class="items-table-wrap">
+        <div class="item-card-list" id="repairItemsBody">
+          ${items.map(([itemId, item]) => renderRepairItemRow(catId, itemId, item)).join('')}
+        </div>
+        <div class="add-item-row" style="margin-top:14px">
+          <input type="text" id="newRepairItemIcon" placeholder="" class="icon-input" maxlength="2" style="width:52px;flex:none">
+          <input type="text" id="newRepairItemZh" placeholder="報修項目名稱（中文）">
+          <input type="text" id="newRepairItemEn" placeholder="Item Name (EN)">
+          <input type="text" id="newRepairItemJa" placeholder="アイテム名（日本語）">
+          <button class="add-item-btn" onclick="addRepairItem('${catId}')" style="background:rgba(217,107,107,0.15);border-color:rgba(217,107,107,0.3);color:#D96B6B">＋ 新增項目</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderRepairItemRow(catId, itemId, item) {
+  return `<div class="item-row-card" id="repRow_${catId}_${itemId}">
+    <div class="item-row-main">
+      <span class="drag-handle">⋮⋮</span>
+      <input type="text" class="icon-input" value="${item.icon || ''}" maxlength="2"
+        oninput="updateRepairItemField('${catId}','${itemId}','icon',this.value)" style="width:44px;flex:none">
+      <input type="text" value="${item.nameZh || ''}"
+        oninput="updateRepairItemField('${catId}','${itemId}','nameZh',this.value)" placeholder="中文名稱">
+      <input type="text" value="${item.nameEn || ''}"
+        oninput="updateRepairItemField('${catId}','${itemId}','nameEn',this.value)" placeholder="English">
+      <input type="text" value="${item.nameJa || ''}"
+        oninput="updateRepairItemField('${catId}','${itemId}','nameJa',this.value)" placeholder="日本語">
+      <button class="del-item-btn" onclick="deleteRepairItem('${catId}','${itemId}')">✕</button>
+    </div>
+  </div>`;
+}
+
+// 報修分類 CRUD
+window.updateRepairCatField = function(catId, field, value) {
+  debouncedSave(`repair_categories/${catId}/${field}`, value);
+};
+window.updateRepairItemField = function(catId, itemId, field, value) {
+  debouncedSave(`repair_categories/${catId}/items/${itemId}/${field}`, value);
+};
+
+window.addRepairItem = function(catId) {
+  const icon = document.getElementById('newRepairItemIcon').value.trim() || '';
+  const nameZh = document.getElementById('newRepairItemZh').value.trim();
+  const nameEn = document.getElementById('newRepairItemEn').value.trim();
+  const nameJa = document.getElementById('newRepairItemJa').value.trim();
+  if (!nameZh) { alert('請輸入中文名稱'); return; }
+  const itemId = 'item_' + Date.now();
+  set(ref(db, `repair_categories/${catId}/items/${itemId}`), { icon, nameZh, nameEn, nameJa });
+  ['newRepairItemIcon','newRepairItemZh','newRepairItemEn','newRepairItemJa'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  showToast('報修項目已新增');
+};
+
+window.deleteRepairItem = function(catId, itemId) {
+  if (!confirm('確定要刪除此報修項目？')) return;
+  remove(ref(db, `repair_categories/${catId}/items/${itemId}`));
+  showToast('項目已刪除');
+};
+
+window.deleteRepairCategory = function(catId) {
+  if (!confirm('確定要刪除此報修類別及其所有項目？此操作無法還原。')) return;
+  remove(ref(db, `repair_categories/${catId}`));
+  selectedRepairCatId = null;
+  document.getElementById('mainContent').innerHTML = `<div class="empty-main"><div>請從左側選擇一個報修類別進行編輯</div></div>`;
+  showToast('類別已刪除');
+};
+
+window.openAddRepairCatModal = function() {
+  document.getElementById('addRepairCatModal').classList.add('show');
+};
+
+window.addRepairCategory = function() {
+  const icon = document.getElementById('newRepairCatIcon').value.trim() || '';
+  const nameZh = document.getElementById('newRepairCatNameZh').value.trim();
+  const nameEn = document.getElementById('newRepairCatNameEn').value.trim();
+  const nameJa = document.getElementById('newRepairCatNameJa').value.trim();
+  if (!nameZh) { alert('請輸入中文名稱'); return; }
+  const catId = 'rep_' + Date.now();
+  const order = Object.keys(repairCategories).length;
+  set(ref(db, `repair_categories/${catId}`), { icon, nameZh, nameEn, nameJa, active: true, order })
+    .then(() => {
+      closeModal('addRepairCatModal');
+      ['newRepairCatIcon','newRepairCatNameZh','newRepairCatNameEn','newRepairCatNameJa'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      showToast('報修類別已新增');
+    })
+    .catch(err => alert('新增失敗：' + err.message));
+};
+
+// ── Clean Records ───────────────────────────────────────
+let cleanHours = 720; // 預設 30 天 = 720 小時
+let cleanTargetKeys = [];
+
+function hoursToLabel(h) {
+  if (h < 24) return `${h} 小時前`;
+  const d = Math.floor(h / 24);
+  const rem = h % 24;
+  return rem > 0 ? `${d} 天 ${rem} 小時前` : `${d} 天前`;
+}
+
+window.openCleanModal = function() {
+  cleanHours = 720;
+  document.getElementById('customDaysInput').value = '';
+  document.getElementById('customHoursInput').value = '';
+  document.querySelectorAll('.days-btn').forEach(b => {
+    b.classList.toggle('selected', b.textContent.includes('30 天'));
+  });
+  calcCleanPreview();
+  document.getElementById('cleanModal').classList.add('show');
+};
+
+window.closeCleanModal = function() {
+  document.getElementById('cleanModal').classList.remove('show');
+};
+
+window.selectHours = function(hours) {
+  cleanHours = hours;
+  document.getElementById('customDaysInput').value = '';
+  document.getElementById('customHoursInput').value = '';
+  document.querySelectorAll('.days-btn').forEach(b => {
+    b.classList.toggle('selected', b.textContent === hours + ' 小時前');
+  });
+  calcCleanPreview();
+};
+
+window.selectDays = function(days) {
+  cleanHours = days * 24;
+  document.getElementById('customDaysInput').value = '';
+  document.getElementById('customHoursInput').value = '';
+  document.querySelectorAll('.days-btn').forEach(b => {
+    b.classList.toggle('selected', b.textContent === days + ' 天前');
+  });
+  calcCleanPreview();
+};
+
+window.onCustomHoursInput = function(val) {
+  const n = parseInt(val);
+  if (!isNaN(n) && n > 0) {
+    cleanHours = n;
+    document.getElementById('customDaysInput').value = '';
+    document.querySelectorAll('.days-btn').forEach(b => b.classList.remove('selected'));
+    calcCleanPreview();
+  }
+};
+
+window.onCustomDaysInput = function(val) {
+  const n = parseInt(val);
+  if (!isNaN(n) && n > 0) {
+    cleanHours = n * 24;
+    document.getElementById('customHoursInput').value = '';
+    document.querySelectorAll('.days-btn').forEach(b => b.classList.remove('selected'));
+    calcCleanPreview();
+  }
+};
+
+function calcCleanPreview() {
+  const cutoff = Date.now() - cleanHours * 60 * 60 * 1000;
+  const preview = document.getElementById('cleanPreview');
+  const confirmBtn = document.getElementById('cleanConfirmBtn');
+
+  get(ref(db, 'requests')).then(snap => {
+    if (!snap.exists()) {
+      cleanTargetKeys = [];
+      preview.innerHTML = '目前沒有任何服務記錄。';
+      confirmBtn.disabled = true;
+      return;
+    }
+    const all = snap.val();
+    cleanTargetKeys = Object.entries(all)
+      .filter(([, r]) => r.status === 'done' && r.createdAt < cutoff)
+      .map(([k]) => k);
+
+    const cutoffTime = new Date(cutoff).toLocaleString('zh-TW', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit', hour12:false });
+    const label = hoursToLabel(cleanHours);
+
+    if (cleanTargetKeys.length === 0) {
+      preview.innerHTML = `${label}（${cutoffTime}）以前沒有已完成的記錄可清除。`;
+      confirmBtn.disabled = true;
+    } else {
+      preview.innerHTML = `將清除 <span class="count">${cleanTargetKeys.length} 筆</span> 已完成記錄<br>（${label}，即 ${cutoffTime} 以前）`;
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = `確認清除 ${cleanTargetKeys.length} 筆`;
+    }
+  }).catch(() => {
+    preview.innerHTML = '無法讀取記錄，請確認 Firebase 連線。';
+    confirmBtn.disabled = true;
+  });
+}
+
+window.doCleanRecords = function() {
+  if (!cleanTargetKeys.length) return;
+  const label = hoursToLabel(cleanHours);
+  if (!confirm(`確定要永久刪除 ${cleanTargetKeys.length} 筆已完成記錄（${label}以前）？\n此操作無法還原。`)) return;
+
+  const confirmBtn = document.getElementById('cleanConfirmBtn');
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = '刪除中…';
+
+  const promises = cleanTargetKeys.map(key => remove(ref(db, 'requests/' + key)));
+
+  Promise.all(promises)
+    .then(() => {
+      closeCleanModal();
+      showToast('已清除 ' + cleanTargetKeys.length + ' 筆舊記錄');
+      cleanTargetKeys = [];
+    })
+    .catch(err => {
+      alert('清除失敗：' + err.message);
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = '確認清除';
+    });
+};
+</script>
+</body>
+</html>

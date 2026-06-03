@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>服務派單中心 | Lakeshore Hotel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A96E;
+    --gold-light: #E8D5A3;
+    --gold-dim: rgba(201,169,110,0.15);
+    --deep: #111008;
+    --surface: #16120D;
+    --card: #1E1912;
+    --card2: #252018;
+    --border: rgba(255,255,255,0.06);
+    --text: #F0EBE2;
+    --text-dim: rgba(240,235,226,0.45);
+    --pending: #E8A94A;
+    --processing: #5B9BD5;
+    --done: #5BAD7B;
+    --badge-pending: rgba(232,169,74,0.15);
+    --badge-proc: rgba(91,155,213,0.15);
+    --badge-done: rgba(91,173,123,0.15);
+    --radius: 14px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--deep);
+    color: var(--text);
+    font-family: 'Noto Sans TC', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 240px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+  }
+
+  .sidebar-logo {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-logo .en {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 15px;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+    line-height: 1.3;
+    margin-bottom: 2px;
+  }
+
+  .sidebar-logo .zh {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+  }
+
+  .sidebar-logo .badge {
+    margin-top: 8px;
+    display: inline-block;
+    background: var(--gold-dim);
+    border: 1px solid rgba(201,169,110,0.3);
+    color: var(--gold);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    letter-spacing: 0.1em;
+  }
+
+  .sidebar-stats {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .stat-row:last-child { margin-bottom: 0; }
+
+  .stat-label { font-size: 11px; color: var(--text-dim); letter-spacing: 0.05em; }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 900;
+    font-family: 'Noto Sans TC', sans-serif;
+  }
+
+  .stat-value.pending { color: var(--pending); }
+  .stat-value.processing { color: var(--processing); }
+  .stat-value.done { color: var(--done); }
+
+  .sidebar-filter {
+    padding: 16px 20px;
+    flex: 1;
+  }
+
+  .filter-title {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+
+  .filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 13px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+    transition: all 0.15s;
+    margin-bottom: 2px;
+  }
+
+  .filter-btn:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+  .filter-btn.active { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(201,169,110,0.2); }
+
+  .filter-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .filter-count {
+    margin-left: auto;
+    font-size: 11px;
+    background: rgba(255,255,255,0.08);
+    padding: 1px 6px;
+    border-radius: 10px;
+  }
+
+  .filter-btn.active .filter-count { background: rgba(201,169,110,0.2); }
+
+  .sound-toggle {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .sound-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+
+  .sound-btn.on { border-color: rgba(91,173,123,0.4); color: var(--done); background: rgba(91,173,123,0.05); }
+
+  .notify-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    background: var(--gold-dim);
+    border: 1px solid rgba(201,169,110,0.3);
+    color: var(--gold);
+    font-size: 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    margin-top: 6px;
+    transition: all 0.2s;
+  }
+
+  /* MAIN */
+  .main {
+    margin-left: 240px;
+    min-height: 100vh;
+  }
+
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+
+  .topbar-title {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 22px;
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+
+  .live-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--done);
+    letter-spacing: 0.08em;
+  }
+
+  .live-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--done);
+    animation: blink 2s infinite;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .time-display {
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+
+  /* CONTENT */
+  .content {
+    padding: 24px 28px;
+  }
+
+  /* REQUEST CARD */
+  .requests-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .req-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    transition: all 0.2s;
+    animation: slideIn 0.3s ease;
+  }
+
+  @keyframes slideIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+
+  .req-card.new-flash {
+    border-color: rgba(201,169,110,0.5);
+    box-shadow: 0 0 20px rgba(201,169,110,0.1);
+  }
+
+  .req-card.sla-alert-yellow {
+    border: 1.5px solid #F59E0B !important;
+    box-shadow: 0 0 16px rgba(245, 158, 11, 0.2) !important;
+  }
+
+  .req-card.sla-alert-red {
+    border: 1.5px solid #EF4444 !important;
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.3) !important;
+  }
+
+  @keyframes slaPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.95; }
+  }
+
+  .animate-sla-pulse {
+    animation: slaPulse 2.5s ease-in-out infinite;
+  }
+
+  .req-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .room-tag {
+    background: var(--gold-dim);
+    border: 1px solid rgba(201,169,110,0.3);
+    color: var(--gold);
+    font-size: 22px;
+    font-weight: 900;
+    font-family: 'Noto Sans TC', sans-serif;
+    padding: 6px 16px;
+    border-radius: 8px;
+    letter-spacing: 0.08em;
+    min-width: 72px;
+    text-align: center;
+  }
+
+  .req-meta { flex: 1; }
+
+  .req-time {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 2px;
+  }
+
+  .req-elapsed {
+    font-size: 11px;
+    color: var(--gold);
+    opacity: 0.7;
+  }
+
+  .status-badge {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  .status-pending { background: var(--badge-pending); color: var(--pending); border: 1px solid rgba(232,169,74,0.2); }
+  .status-processing { background: var(--badge-proc); color: var(--processing); border: 1px solid rgba(91,155,213,0.2); }
+  .status-done { background: var(--badge-done); color: var(--done); border: 1px solid rgba(91,173,123,0.2); }
+
+  .req-card-body { padding: 14px 16px; }
+
+  .items-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .item-chip {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .item-chip .qty {
+    background: rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 0 5px;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .remark-box {
+    background: rgba(255,255,255,0.03);
+    border-left: 2px solid rgba(201,169,110,0.3);
+    padding: 6px 10px;
+    font-size: 12px;
+    color: var(--text-dim);
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 10px;
+    font-style: italic;
+  }
+
+  .req-actions { display: flex; gap: 8px; }
+
+  .action-btn {
+    flex: 1;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 12px;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    letter-spacing: 0.03em;
+  }
+
+  .action-btn:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+
+  .action-btn.processing {
+    border-color: rgba(91,155,213,0.4);
+    color: var(--processing);
+    background: rgba(91,155,213,0.05);
+  }
+
+  .action-btn.done {
+    border-color: rgba(91,173,123,0.4);
+    color: var(--done);
+    background: rgba(91,173,123,0.05);
+  }
+
+  /* EMPTY */
+  .empty-state {
+    text-align: center;
+    padding: 80px 40px;
+    color: var(--text-dim);
+  }
+
+  .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.4; }
+  .empty-text { font-size: 15px; margin-bottom: 6px; }
+  .empty-sub { font-size: 12px; letter-spacing: 0.05em; }
+
+  /* NOTIFICATION TOAST */
+  .toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--card2);
+    border: 1px solid rgba(201,169,110,0.4);
+    border-radius: 12px;
+    padding: 14px 18px;
+    max-width: 300px;
+    z-index: 1000;
+    animation: toastIn 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  @keyframes toastIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
+
+  .toast-title { font-size: 13px; color: var(--gold); margin-bottom: 4px; }
+  .toast-body { font-size: 12px; color: var(--text-dim); }
+
+  /* DOWNLOAD BTN */
+  .download-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    background: transparent;
+    border: 1px solid rgba(201,169,110,0.25);
+    color: var(--gold);
+    font-size: 12px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+    margin-top: 6px;
+    letter-spacing: 0.03em;
+  }
+  .download-btn:hover { background: rgba(201,169,110,0.08); }
+
+  /* DOWNLOAD MODAL */
+  .dl-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .dl-modal-overlay.show { display: flex; }
+  .dl-modal {
+    background: #1E1912;
+    border: 1px solid rgba(201,169,110,0.2);
+    border-radius: 16px;
+    padding: 24px;
+    width: 360px;
+    max-width: 90vw;
+  }
+  .dl-modal-title {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 20px;
+    color: var(--gold);
+    margin-bottom: 18px;
+  }
+  .dl-field { margin-bottom: 12px; }
+  .dl-field label { display: block; font-size: 11px; color: var(--text-dim); margin-bottom: 5px; letter-spacing: 0.08em; }
+  .dl-field select, .dl-field input[type="date"] {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+  }
+  .dl-field select option { background: #1E1912; }
+  .dl-date-row { display: flex; gap: 8px; }
+  .dl-date-row .dl-field { flex: 1; }
+  .dl-actions { display: flex; gap: 8px; margin-top: 18px; }
+  .dl-btn-cancel {
+    flex: 1; padding: 10px; border-radius: 8px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+    color: var(--text-dim); font-family: inherit; font-size: 13px; cursor: pointer;
+  }
+  .dl-btn-confirm {
+    flex: 2; padding: 10px; border-radius: 8px;
+    background: rgba(201,169,110,0.15); border: 1px solid rgba(201,169,110,0.3);
+    color: var(--gold); font-family: inherit; font-size: 13px; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .dl-btn-confirm:hover { background: rgba(201,169,110,0.25); }
+
+  /* OOS NOTIFICATION */
+  .oos-section {
+    margin: 0 28px 20px;
+  }
+
+  .oos-section-title {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: #D96B6B;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .oos-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(217,107,107,0.2);
+  }
+
+  .oos-card {
+    background: rgba(217,107,107,0.07);
+    border: 1px solid rgba(217,107,107,0.25);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    animation: slideIn 0.3s ease;
+  }
+
+  .oos-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .oos-card-who {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .oos-card-who strong { color: #D96B6B; }
+
+  .oos-card-time {
+    font-size: 11px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+
+  .oos-items-wrap { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+
+  .oos-item-chip {
+    background: rgba(217,107,107,0.12);
+    border: 1px solid rgba(217,107,107,0.25);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #D96B6B;
+  }
+
+  .oos-linked-req {
+    font-size: 11px;
+    color: var(--text-dim);
+    background: rgba(255,255,255,0.03);
+    border-radius: 6px;
+    padding: 5px 8px;
+    margin-bottom: 8px;
+  }
+
+  .oos-remark-box {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-style: italic;
+    margin-bottom: 8px;
+  }
+
+  .oos-dismiss-btn {
+    background: transparent;
+    border: 1px solid rgba(217,107,107,0.25);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 11px;
+    color: #D96B6B;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+    float: right;
+  }
+  .oos-dismiss-btn:hover { background: rgba(217,107,107,0.12); }
+
+  .oos-unread-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #D96B6B;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    margin-left: 6px;
+  }
+
+  /* RISK SECTION */
+  .risk-section {
+    margin: 0 28px 20px;
+    display: none;
+  }
+
+  .risk-section.show { display: block; }
+
+  .risk-section-title {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: #F09A73;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .risk-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(240,154,115,0.22);
+  }
+
+  .risk-card {
+    background: linear-gradient(135deg, rgba(240,154,115,0.12), rgba(128,39,39,0.1));
+    border: 1px solid rgba(240,154,115,0.25);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    animation: slideIn 0.3s ease;
+  }
+
+  .risk-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .risk-card-room {
+    font-size: 17px;
+    color: #FFD5C2;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  .risk-card-meta {
+    font-size: 12px;
+    color: rgba(240,235,226,0.74);
+    margin-top: 3px;
+  }
+
+  .risk-card-badge {
+    flex-shrink: 0;
+    background: rgba(240,154,115,0.14);
+    border: 1px solid rgba(240,154,115,0.3);
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: #FFD5C2;
+  }
+
+  .risk-card-body {
+    font-size: 12px;
+    color: rgba(240,235,226,0.85);
+    line-height: 1.7;
+  }
+
+  .risk-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 8px 0;
+  }
+
+  .risk-item-chip {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: var(--text);
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="en">Lakeshore Hotel<br>Hualien Taroko</div>
+    <div class="zh">煙波花蓮太魯閣</div>
+    <div class="badge">服務派單中心</div>
+  </div>
+
+  <div class="sidebar-stats">
+    <div class="stat-row">
+      <span class="stat-label">🟡 待處理</span>
+      <span class="stat-value pending" id="statPending">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">🔵 處理中</span>
+      <span class="stat-value processing" id="statProcessing">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">🟢 今日完成</span>
+      <span class="stat-value done" id="statDone">0</span>
+    </div>
+  </div>
+
+  <div class="sidebar-filter">
+    <div class="filter-title">篩選</div>
+    <button class="filter-btn active" onclick="setFilter('all')" id="filter-all">
+      <span class="filter-dot" style="background:#888"></span> 全部
+      <span class="filter-count" id="count-all">0</span>
+    </button>
+    <button class="filter-btn" onclick="setFilter('pending')" id="filter-pending">
+      <span class="filter-dot" style="background:var(--pending)"></span> 待處理
+      <span class="filter-count" id="count-pending">0</span>
+    </button>
+    <button class="filter-btn" onclick="setFilter('processing')" id="filter-processing">
+      <span class="filter-dot" style="background:var(--processing)"></span> 處理中
+      <span class="filter-count" id="count-processing">0</span>
+    </button>
+    <button class="filter-btn" onclick="setFilter('done')" id="filter-done">
+      <span class="filter-dot" style="background:var(--done)"></span> 已完成
+      <span class="filter-count" id="count-done">0</span>
+    </button>
+  </div>
+
+  <div class="sound-toggle">
+    <button class="sound-btn" id="soundBtn" onclick="toggleSound()">
+      🔔 提示音：<span id="soundStatus">關閉</span>
+    </button>
+    <button class="notify-btn" id="notifyBtn" onclick="requestNotify()">
+      🔔 啟用推播通知
+    </button>
+    <button class="download-btn" onclick="openDownloadModal()">
+      ⬇ 下載服務記錄
+    </button>
+    <div id="osSysHint" style="font-size:10px;color:rgba(255,255,255,0.2);padding:8px 4px 0;line-height:1.5;letter-spacing:0.03em;"></div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" style="display:flex;align-items:center;gap:12px;">
+      <span>服務需求派單</span>
+      <a href="/" style="font-size:11px;background:rgba(201,169,110,0.15);color:#C9A96E;border:1px solid rgba(201,169,110,0.3);padding:3px 9px;border-radius:20px;text-decoration:none;font-weight:normal;cursor:pointer;white-space:nowrap;display:inline-block;">← 回主選單 Home</a>
+    </div>
+    <div class="topbar-right">
+      <div class="live-indicator"><div class="live-dot"></div>即時同步中</div>
+      <div class="time-display" id="timeDisplay">—</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- 缺貨通知區 -->
+    <div class="oos-section" id="oosSection" style="display:none">
+      <div class="oos-section-title">
+        ⚠ 缺貨通知 <span class="oos-unread-badge" id="oosBadge">0</span>
+      </div>
+      <div id="oosCardList"></div>
+    </div>
+
+    <div class="risk-section" id="riskSection">
+      <div class="risk-section-title">⚠ 客訴風險</div>
+      <div id="riskRequestsList"></div>
+    </div>
+
+    <div class="requests-list" id="requestsList">
+      <div class="empty-state">
+        <div class="empty-icon">🎯</div>
+        <div class="empty-text">目前沒有服務需求</div>
+        <div class="empty-sub">新需求進來時將即時顯示</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Download Modal -->
+<div class="dl-modal-overlay" id="dlModalOverlay">
+  <div class="dl-modal">
+    <div class="dl-modal-title">⬇ 下載服務記錄</div>
+
+    <div class="dl-field">
+      <label>館別篩選</label>
+      <select id="dlBuilding">
+        <option value="all">全部館別</option>
+        <option value="tranquil">沁海館</option>
+        <option value="moment">煙波花蓮花時間</option>
+        <option value="serenity">山闊館</option>
+      </select>
+    </div>
+
+    <div class="dl-field">
+      <label>狀態篩選</label>
+      <select id="dlStatus">
+        <option value="all">全部狀態</option>
+        <option value="pending">待處理</option>
+        <option value="processing">處理中</option>
+        <option value="done">已完成</option>
+      </select>
+    </div>
+
+    <div class="dl-date-row">
+      <div class="dl-field">
+        <label>起始日期</label>
+        <input type="date" id="dlDateFrom">
+      </div>
+      <div class="dl-field">
+        <label>結束日期</label>
+        <input type="date" id="dlDateTo">
+      </div>
+    </div>
+
+    <div class="dl-field">
+      <label>匯出格式</label>
+      <select id="dlFormat">
+        <option value="csv">CSV（Excel 可開啟）</option>
+        <option value="txt">純文字 TXT</option>
+      </select>
+    </div>
+
+    <div class="dl-actions">
+      <button class="dl-btn-cancel" onclick="closeDownloadModal()">取消</button>
+      <button class="dl-btn-confirm" onclick="doDownload()">⬇ 確認下載</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase compat (全域可用，解決 module 作用域問題) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCFDq7PjC5j--bnHJ9SBglao4_avOCEge8",
+  authDomain: "lakeshore-guest-service.firebaseapp.com",
+  databaseURL: "https://lakeshore-guest-service-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "lakeshore-guest-service",
+  storageBucket: "lakeshore-guest-service.firebasestorage.app",
+  messagingSenderId: "1026886642744",
+  appId: "1:1026886642744:web:225dccc902e0a7d9e00acd"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ── State ─────────────────────────────────────────────
+let allRequests = {};
+let currentFilter = 'all';
+let soundEnabled = false;
+let isFirstLoad = true;
+let audioCtx = null;
+const pendingRiskWrites = new Set();
+const alertedRoomIssueBreaches = new Set();
+const ROOM_ISSUE_UNASSIGNED_THRESHOLD = 2 * 60 * 1000;
+const ROOM_ISSUE_UNRESOLVED_THRESHOLD = 5 * 60 * 1000;
+const ROOM_ISSUE_RISK_CONFIG = {
+  unassigned: {
+    thresholdMs: ROOM_ISSUE_UNASSIGNED_THRESHOLD,
+    escalationKey: 'unassignedAlerted',
+    badgeLabel: '2 分鐘未接單',
+    inlineLabel: '客房問題超過 2 分鐘尚未接單',
+    toastTitle: (roomLabel) => `⚠ ${roomLabel} 號房 客房問題未接單`,
+    toastBody: (issueLabel) => `${issueLabel} 已超過 2 分鐘無人接單，請立即處理。`,
+    cardBody: (minutesOver) => `客房問題送出後仍無人接單，已超時 ${minutesOver} 分鐘。`,
+  },
+  unresolved: {
+    thresholdMs: ROOM_ISSUE_UNRESOLVED_THRESHOLD,
+    escalationKey: 'unresolvedAlerted',
+    badgeLabel: '5 分鐘未解決',
+    inlineLabel: '客房問題超過 5 分鐘未解決',
+    toastTitle: (roomLabel) => `⚠ ${roomLabel} 號房 客房問題逾時未解決`,
+    toastBody: (issueLabel) => `${issueLabel} 已超過 5 分鐘仍未完成，請優先跟進。`,
+    cardBody: (minutesOver) => `房務已接單但客房問題仍未完成，已超時 ${minutesOver} 分鐘。`,
+  },
+};
+
+// ── Time ─────────────────────────────────────────────
+function updateTime() {
+  const now = new Date();
+  document.getElementById('timeDisplay').textContent =
+    now.toLocaleString('zh-TW', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12: false });
+}
+setInterval(updateTime, 1000);
+updateTime();
+
+// 顯示 OS 對應提示
+(function showOsHint() {
+  const el = document.getElementById('osSysHint');
+  if (!el) return;
+  const ua = navigator.userAgent.toUpperCase();
+  if (ua.includes('WIN')) {
+    el.textContent = '⚠ Windows：請確認系統「通知」與「勿擾模式」設定';
+  } else if (ua.includes('MAC')) {
+    el.textContent = '⚠ Mac：請確認系統「通知」已允許 Chrome';
+  }
+})();
+
+// ── Sound ─────────────────────────────────────────────
+function toggleSound() {
+  // AudioContext 必須在使用者互動時建立
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+  }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  soundEnabled = !soundEnabled;
+  const btn = document.getElementById('soundBtn');
+  const status = document.getElementById('soundStatus');
+  btn.classList.toggle('on', soundEnabled);
+  status.textContent = soundEnabled ? '開啟 ✓' : '關閉';
+  if (soundEnabled) playAlert();
+}
+
+function playAlert() {
+  if (!audioCtx) return;
+  try {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+    osc.frequency.setValueAtTime(660, audioCtx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+  } catch(e){}
+}
+
+// ── Notifications ─────────────────────────────────────
+function requestNotify() {
+  if (!('Notification' in window)) { alert('此瀏覽器不支援推播通知'); return; }
+
+  // 偵測作業系統
+  const isMac = navigator.platform.toUpperCase().includes('MAC') ||
+                navigator.userAgent.toUpperCase().includes('MAC');
+  const isWin = navigator.platform.toUpperCase().includes('WIN') ||
+                navigator.userAgent.toUpperCase().includes('WIN');
+
+  const sysHint = isMac
+    ? 'Mac 請確認：系統設定 → 通知 → Google Chrome → 已開啟'
+    : isWin
+    ? 'Windows 請確認：系統設定 → 系統 → 通知 → Google Chrome → 已開啟'
+    : '請確認系統通知權限已允許 Google Chrome';
+
+  const deniedMsg = isMac
+    ? '通知已被封鎖。\n\n請到 Chrome 網址列左側的鎖頭圖示 → 通知 → 允許，\n或在 Mac 系統設定 → 通知 → Google Chrome 中開啟。'
+    : isWin
+    ? '通知已被封鎖。\n\n請到 Chrome 網址列左側的鎖頭圖示 → 通知 → 允許，\n或在 Windows 系統設定 → 系統 → 通知 → Google Chrome 中開啟。\n\n另請確認 Windows 勿擾模式已關閉。'
+    : '通知已被封鎖，請到 Chrome 設定中允許通知權限。';
+
+  Notification.requestPermission().then(perm => {
+    if (perm === 'granted') {
+      document.getElementById('notifyBtn').textContent = '✅ 推播通知已啟用';
+      document.getElementById('notifyBtn').style.opacity = '0.6';
+      document.getElementById('notifyBtn').style.cursor = 'default';
+      try {
+        new Notification('✅ 推播通知已啟用', {
+          body: sysHint,
+          requireInteraction: false,
+          tag: 'setup-test-' + Date.now(),
+        });
+      } catch(e) {}
+    } else if (perm === 'denied') {
+      alert(deniedMsg);
+    } else {
+      alert('請允許通知權限以接收新需求提醒');
+    }
+  });
+}
+
+function sendNotification(req) {
+  const prefix = getBuildingPrefix(req.building);
+  const roomLabel = `${prefix}${req.room}`;
+  const items = req.items.map(i => `${i.nameZh || i.nameEn || i.nameJa || '未知備品'}×${i.qty}`).join('、');
+  const building = req.buildingZh || '';
+
+  if (Notification.permission === 'granted') {
+    // 每筆用唯一 tag，避免 Mac 上通知被靜默覆蓋
+    const tag = 'req-' + Date.now();
+    try {
+      new Notification(`🔔 ${building} ${roomLabel} 號房 新需求`, {
+        body: items,
+        tag: tag,
+        requireInteraction: true,
+        silent: false,
+      });
+    } catch(e) {
+      // requireInteraction 不支援時改用基本通知
+      try {
+        new Notification(`🔔 ${building} ${roomLabel} 號房 新需求`, { body: items, tag: tag });
+      } catch(e2) { console.warn('Notification error:', e2); }
+    }
+  }
+
+  if (soundEnabled) playAlert();
+  flashTitle(roomLabel);
+  showToast(req);
+}
+
+// 頁面標題閃爍（瀏覽器縮小時任務列可見）
+let flashInterval = null;
+function flashTitle(roomLabel) {
+  clearInterval(flashInterval);
+  const original = '服務派單中心 | Lakeshore Hotel';
+  let toggle = true;
+  let count = 0;
+  flashInterval = setInterval(() => {
+    document.title = toggle ? `🔔 ${roomLabel} 號房 新需求！` : original;
+    toggle = !toggle;
+    count++;
+    if (count >= 20) {
+      clearInterval(flashInterval);
+      document.title = original;
+    }
+  }, 600);
+  // 使用者切回分頁時停止閃爍
+  document.addEventListener('visibilitychange', function stopFlash() {
+    if (!document.hidden) {
+      clearInterval(flashInterval);
+      document.title = original;
+      document.removeEventListener('visibilitychange', stopFlash);
+    }
+  });
+}
+
+function showToast(req) {
+  const items = req.items.map(i => `${i.nameZh || i.nameEn || i.nameJa || '未知備品'}×${i.qty}`).join('、');
+  const building = req.buildingZh ? `【${req.buildingZh}】` : '';
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `<div class="toast-title">🔔 ${escapeHtml(building)} ${escapeHtml(req.room)} 號房 — 新服務需求</div><div class="toast-body">${escapeHtml(items)}</div>`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 5000);
+}
+
+function showRiskToast(title, body) {
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `<div class="toast-title">${escapeHtml(title)}</div><div class="toast-body">${escapeHtml(body)}</div>`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 7000);
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function formatRoomIssueLabel(req) {
+  return req.roomIssueLabelZh
+    || req.roomIssueLabelEn
+    || req.roomIssueLabelJa
+    || (req.items && req.items[0] && (req.items[0].nameZh || req.items[0].nameEn || req.items[0].nameJa))
+    || '客房問題';
+}
+
+function getRoomIssueRiskConfig(breachType) {
+  return ROOM_ISSUE_RISK_CONFIG[breachType] || ROOM_ISSUE_RISK_CONFIG.unassigned;
+}
+
+function getRoomIssueRisk(req) {
+  if (!req || req.type !== 'room_issue' || req.status === 'done' || req.status === 'cancelled') return null;
+
+  const sla = req.sla || {};
+  const escalation = req.escalation || {};
+  const now = Date.now();
+  const assignedAt = req.assignedAt || null;
+  const unassignedAlertAt = sla.unassignedAlertAt || ((req.createdAt || now) + ROOM_ISSUE_RISK_CONFIG.unassigned.thresholdMs);
+  const unresolvedAlertAt = sla.unresolvedAlertAt || (assignedAt ? assignedAt + ROOM_ISSUE_RISK_CONFIG.unresolved.thresholdMs : null);
+  const unassignedBreached = !assignedAt && req.status === 'pending' && now >= unassignedAlertAt;
+  const unresolvedBreached = !!assignedAt && req.status !== 'done' && now >= unresolvedAlertAt;
+
+  if (!unassignedBreached && !unresolvedBreached) return null;
+
+  const breachType = unresolvedBreached ? 'unresolved' : 'unassigned';
+  const breachedAt = unresolvedBreached ? unresolvedAlertAt : unassignedAlertAt;
+  const riskConfig = getRoomIssueRiskConfig(breachType);
+
+  return {
+    breachType,
+    riskConfig,
+    breachedAt,
+    minutesOver: Math.max(0, Math.floor((now - breachedAt) / 60000)),
+    unassignedAlerted: !!escalation.unassignedAlerted,
+    unresolvedAlerted: !!escalation.unresolvedAlerted,
+  };
+}
+
+function renderRiskRequests(riskEntries) {
+  const section = document.getElementById('riskSection');
+  const list = document.getElementById('riskRequestsList');
+  if (!section || !list) return;
+
+  const sorted = [...riskEntries].sort((a, b) => {
+    const breachOrder = { unresolved: 0, unassigned: 1 };
+    return (breachOrder[a.risk.breachType] - breachOrder[b.risk.breachType])
+      || (a.risk.breachedAt - b.risk.breachedAt);
+  });
+
+  section.classList.toggle('show', sorted.length > 0);
+  if (!sorted.length) {
+    list.innerHTML = '';
+    return;
+  }
+
+  list.innerHTML = sorted.map(req => {
+    const prefix = getBuildingPrefix(req.building);
+    const roomLabel = escapeHtml(`${prefix}${req.room}`);
+    const issueLabel = escapeHtml(formatRoomIssueLabel(req));
+    const breachBadge = escapeHtml(req.risk.riskConfig.badgeLabel);
+    const riskBody = escapeHtml(req.risk.riskConfig.cardBody(req.risk.minutesOver));
+    const assignedInfo = req.assignedTo
+      ? `目前處理人員：${escapeHtml(req.assignedTo)}${req.assignedAt ? ` ・ ${escapeHtml(new Date(req.assignedAt).toLocaleString('zh-TW', { hour:'2-digit', minute:'2-digit', hour12:false }))}` : ''}`
+      : '目前尚未由房務接單';
+    const items = (req.items || []).map(item => `<span class="risk-item-chip">${escapeHtml(item.icon || '📋')} ${escapeHtml(item.nameZh || item.nameEn || item.nameJa || '客房問題')}</span>`).join('');
+    const createdAt = req.createdAt
+      ? escapeHtml(new Date(req.createdAt).toLocaleString('zh-TW', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit', hour12:false }))
+      : '—';
+    const buildingZh = escapeHtml(req.buildingZh || '');
+    const remark = req.remark
+      ? `<div style="margin-top:6px;color:rgba(240,235,226,0.68)">備註：${escapeHtml(req.remark)}</div>`
+      : '';
+
+    return `<div class="risk-card">
+      <div class="risk-card-header">
+        <div>
+          <div class="risk-card-room">${buildingZh} ${roomLabel} 號房</div>
+          <div class="risk-card-meta">客房問題 ・ 建立於 ${createdAt}</div>
+        </div>
+        <div class="risk-card-badge">${breachBadge}</div>
+      </div>
+      <div class="risk-card-body">
+        ${riskBody}
+        <div class="risk-items">${items || `<span class="risk-item-chip">📋 ${issueLabel}</span>`}</div>
+        <div>${assignedInfo}</div>
+        ${remark}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function syncRoomIssueRiskState() {
+  const riskEntries = [];
+
+  Object.entries(allRequests).forEach(([id, req]) => {
+    if (!req) return;
+    const reqWithId = { id, ...req };
+    const risk = getRoomIssueRisk(reqWithId);
+    if (!risk) return;
+
+    riskEntries.push({ ...reqWithId, risk });
+
+    const escalationKey = risk.riskConfig.escalationKey;
+    const writeKey = `${id}:${escalationKey}`;
+    if (risk[escalationKey] || pendingRiskWrites.has(writeKey) || alertedRoomIssueBreaches.has(writeKey)) return;
+
+    const updates = {
+      [`escalation/${escalationKey}`]: true,
+      updatedAt: Date.now(),
+    };
+
+    if (risk.breachType === 'unresolved' && !(req.sla && req.sla.unresolvedAlertAt) && req.assignedAt) {
+      updates['sla/unresolvedAlertAt'] = req.assignedAt + ROOM_ISSUE_RISK_CONFIG.unresolved.thresholdMs;
+    }
+
+    alertedRoomIssueBreaches.add(writeKey);
+    pendingRiskWrites.add(writeKey);
+    db.ref(`requests/${id}`).update(updates)
+      .then(() => pendingRiskWrites.delete(writeKey))
+      .catch((error) => {
+        pendingRiskWrites.delete(writeKey);
+        console.warn('Failed to persist room issue risk flag:', error);
+      });
+
+    const prefix = getBuildingPrefix(req.building);
+    const roomLabel = `${prefix}${req.room}`;
+    const issueLabel = formatRoomIssueLabel(req);
+    const title = risk.riskConfig.toastTitle(roomLabel);
+    const body = risk.riskConfig.toastBody(issueLabel);
+
+    showRiskToast(title, body);
+    if (soundEnabled) playAlert();
+  });
+
+  renderRiskRequests(riskEntries);
+}
+
+// ── Firebase Listen ────────────────────────────────────
+db.ref('requests').on('value', (snap) => {
+  const data = snap.exists() ? snap.val() : {};
+  const prevIds = new Set(Object.keys(allRequests));
+  allRequests = data;
+
+  if (!isFirstLoad) {
+    Object.entries(data).forEach(([id, req]) => {
+      if (!prevIds.has(id) && req.status === 'pending') sendNotification(req);
+    });
+  }
+
+  isFirstLoad = false;
+  syncRoomIssueRiskState();
+  renderRequests();
+  updateStats();
+});
+
+// ── Render ─────────────────────────────────────────────
+function getBuildingPrefix(building) {
+  const map = { tranquil: 'A', moment: 'B', serenity: 'C' };
+  return map[building] || '';
+}
+
+function renderRequests() {
+  const list = document.getElementById('requestsList');
+  let entries = Object.entries(allRequests).map(([id, r]) => ({ id, ...r }));
+
+  // Filter
+  if (currentFilter !== 'all') entries = entries.filter(r => r.status === currentFilter);
+
+  // Sort: pending > processing > done, then by time desc
+  const order = { pending: 0, processing: 1, done: 2 };
+  entries.sort((a, b) => (order[a.status] - order[b.status]) || (b.createdAt - a.createdAt));
+
+  if (!entries.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-text">目前沒有${currentFilter === 'all' ? '' : { pending:'待處理', processing:'處理中', done:'已完成' }[currentFilter]}的需求</div><div class="empty-sub">新需求進來時將即時顯示</div></div>`;
+    return;
+  }
+
+  list.innerHTML = entries.map(req => {
+    const time = new Date(req.createdAt);
+    const timeStr = time.toLocaleString('zh-TW', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit', hour12: false });
+    const elapsed = getElapsed(req.createdAt);
+    const isRoomIssue = req.type === 'room_issue';
+    const roomIssueRisk = getRoomIssueRisk(req);
+
+    // Dynamic SLA Alarms
+    const createdTime = req.createdAt;
+    const diffCreatedMins = (Date.now() - createdTime) / 60000;
+    
+    let slaAlertClass = '';
+    let slaAlertBanner = '';
+
+    if (req.status === 'pending') {
+      if (diffCreatedMins >= 10) {
+        slaAlertClass = ' sla-alert-yellow animate-sla-pulse';
+        slaAlertBanner = `
+          <div style="background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.25); color:#F59E0B; font-size:11px; padding:6px 12px; border-radius:8px; margin-bottom:10px; display:flex; align-items:center; gap:6px; font-weight:600;">
+            ⚠️ SLA 臨界警告：需求已等候 ${Math.floor(diffCreatedMins)} 分鐘仍無人接單，請聯絡同仁調派！
+          </div>
+        `;
+      }
+    } else if (req.status === 'assigned' || req.status === 'processing') {
+      const startTime = req.assignedAt || req.createdAt;
+      const diffAssignedMins = (Date.now() - startTime) / 60000;
+      if (diffAssignedMins >= 15) {
+        slaAlertClass = ' sla-alert-red animate-sla-pulse';
+        slaAlertBanner = `
+          <div style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.25); color:#EF4444; font-size:11px; padding:6px 12px; border-radius:8px; margin-bottom:10px; display:flex; align-items:center; gap:6px; font-weight:600;">
+            🚨 SLA 嚴重警告：接單至今已 ${Math.floor(diffAssignedMins)} 分鐘仍未完成，請聯繫房務員前往協助！
+          </div>
+        `;
+      }
+    }
+
+    const statusLabel = req.status === 'pending' ? '待處理'
+      : req.status === 'assigned' ? `🙋 ${req.assignedTo||'房務'} 接單中`
+      : req.status === 'processing' ? `🚶 ${req.assignedTo||'房務'} 前往中`
+      : req.status === 'done' ? '✅ 已完成'
+      : req.status === 'cancelled' ? '❌ 已取消（缺貨）'
+      : req.status;
+    const statusClass = req.status === 'done' ? 'status-done status-done-bold'
+      : req.status === 'assigned' ? 'status-processing'
+      : req.status === 'cancelled' ? 'status-cancelled'
+      : `status-${req.status}`;
+
+    const items = (req.items || []).map(item => `
+      <div class="item-chip">
+        ${escapeHtml(item.nameZh || item.nameEn || item.nameJa || item.id || '未知備品')} <span class="qty">×${escapeHtml(item.qty)}</span>
+      </div>`).join('');
+
+    const remark = req.remark ? `<div class="remark-box">💬 ${escapeHtml(req.remark)}</div>` : '';
+
+    const dndBtn = (req.status === 'processing' || req.status === 'assigned')
+      ? `<button class="action-btn" style="background:rgba(217,107,107,0.12);border:1px solid rgba(217,107,107,0.3);color:#D96B6B" onclick="sendDndNotify('${req.id}','${req.lang||'zh'}')">🔴 提醒關燈</button>`
+      : '';
+    const actions = req.status === 'pending'
+      ? `<button class="action-btn processing" onclick="updateStatus('${req.id}', 'processing')">🔵 標記處理中</button>
+         <button class="action-btn done" onclick="updateStatus('${req.id}', 'done')">✅ 標記完成</button>`
+      : req.status === 'processing'
+      ? `<button class="action-btn done" onclick="updateStatus('${req.id}', 'done')">✅ 標記已完成</button>
+         <button class="action-btn" onclick="updateStatus('${req.id}', 'pending')">↩ 退回待處理</button>
+         ${dndBtn}`
+      : req.status === 'assigned'
+      ? `<button class="action-btn" onclick="updateStatus('${req.id}', 'pending')">↩ 退回待處理</button>
+         ${dndBtn}`
+      : `<button class="action-btn" onclick="updateStatus('${req.id}', 'pending')">↩ 重新開啟</button>`;
+
+    return `
+      <div class="req-card${slaAlertClass ? slaAlertClass : roomIssueRisk ? ' new-flash' : ''}" id="req_${req.id}">
+        <div class="req-card-header">
+          <div class="room-tag">${getBuildingPrefix(req.building)}${req.room}</div>
+          ${isRoomIssue
+            ? '<div style="background:rgba(240,154,115,0.14);border:1px solid rgba(240,154,115,0.32);color:#FFD5C2;font-size:10px;padding:3px 8px;border-radius:10px;font-weight:700;flex-shrink:0">客房問題</div>'
+            : req.type === 'repair'
+            ? '<div style="background:rgba(217,107,107,0.15);border:1px solid rgba(217,107,107,0.3);color:#D96B6B;font-size:10px;padding:3px 8px;border-radius:10px;font-weight:700;flex-shrink:0">維修</div>'
+            : '<div style="background:rgba(201,169,110,0.12);border:1px solid rgba(201,169,110,0.25);color:var(--gold);font-size:10px;padding:3px 8px;border-radius:10px;flex-shrink:0">備品</div>'}
+          <div class="req-meta">
+            <div class="req-time">${req.buildingZh ? `${req.buildingZh}` : ''} ${timeStr}</div>
+            <div class="req-elapsed">⏱ ${elapsed}</div>
+          </div>
+          <div class="status-badge ${statusClass}">${statusLabel}</div>
+        </div>
+        <div class="req-card-body">
+          ${slaAlertBanner}
+          <div class="items-list">${items}</div>
+          ${isRoomIssue && roomIssueRisk ? `<div class="remark-box" style="border-left-color:rgba(240,154,115,0.45);color:#FFD5C2">⚠ ${roomIssueRisk.riskConfig.inlineLabel}</div>` : ''}
+          ${remark}
+          ${req.assignedTo ? `<div style="display:flex;align-items:center;gap:8px;background:rgba(167,139,250,0.07);border:1px solid rgba(167,139,250,0.2);border-radius:8px;padding:7px 12px;margin-bottom:8px;font-size:12px;color:#A78BFA">🙋 房務員 <strong style="margin:0 3px">${req.assignedTo}</strong> 已接單${req.assignedAt ? ' ・ ' + new Date(req.assignedAt).toLocaleString('zh-TW',{hour:'2-digit',minute:'2-digit',hour12:false}) : ''}</div>` : ''}
+          <div class="req-actions">${actions}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function getElapsed(ts) {
+  const diff = Date.now() - ts;
+  const m = Math.floor(diff / 60000);
+  const h = Math.floor(m / 60);
+  if (h > 0) return `${h} 小時前`;
+  if (m > 0) return `${m} 分鐘前`;
+  return '剛剛';
+}
+
+setInterval(() => {
+  if (!Object.keys(allRequests).length) return;
+  syncRoomIssueRiskState();
+  renderRequests();
+}, 12000);
+
+// ── Update Status ──────────────────────────────────────
+function updateStatus(id, status) {
+  const req = allRequests[id];
+  if (!req) return;
+
+  const now = Date.now();
+  const updates = { status, updatedAt: now };
+
+  if (req.type === 'room_issue') {
+    const nextEscalation = { ...(req.escalation || {}) };
+    const nextSla = { ...(req.sla || {}) };
+
+    if (status === 'pending') {
+      updates.assignedTo = null;
+      updates.assignedAt = null;
+      updates.goingAt = null;
+      nextSla.unassignedAlertAt = now + ROOM_ISSUE_RISK_CONFIG.unassigned.thresholdMs;
+      nextSla.unresolvedAlertAt = null;
+      nextEscalation.unassignedAlerted = false;
+      nextEscalation.unresolvedAlerted = false;
+      alertedRoomIssueBreaches.delete(`${id}:unassignedAlerted`);
+      alertedRoomIssueBreaches.delete(`${id}:unresolvedAlerted`);
+    } else if (status === 'processing') {
+      const assignedAt = req.assignedAt || now;
+      if (!req.assignedAt) updates.assignedAt = assignedAt;
+      nextSla.unassignedAlertAt = nextSla.unassignedAlertAt || ((req.createdAt || now) + ROOM_ISSUE_RISK_CONFIG.unassigned.thresholdMs);
+      nextSla.unresolvedAlertAt = assignedAt + ROOM_ISSUE_RISK_CONFIG.unresolved.thresholdMs;
+      nextEscalation.unresolvedAlerted = false;
+      alertedRoomIssueBreaches.delete(`${id}:unresolvedAlerted`);
+    } else if (status === 'assigned') {
+      const assignedAt = req.assignedAt || now;
+      if (!req.assignedAt) updates.assignedAt = assignedAt;
+      nextSla.unassignedAlertAt = nextSla.unassignedAlertAt || ((req.createdAt || now) + ROOM_ISSUE_RISK_CONFIG.unassigned.thresholdMs);
+      nextSla.unresolvedAlertAt = assignedAt + ROOM_ISSUE_RISK_CONFIG.unresolved.thresholdMs;
+      nextEscalation.unresolvedAlerted = false;
+      alertedRoomIssueBreaches.delete(`${id}:unresolvedAlerted`);
+    } else if (status === 'done' || status === 'cancelled') {
+      alertedRoomIssueBreaches.delete(`${id}:unassignedAlerted`);
+      alertedRoomIssueBreaches.delete(`${id}:unresolvedAlerted`);
+    }
+
+    updates.sla = nextSla;
+    updates.escalation = nextEscalation;
+  }
+
+  db.ref(`requests/${id}`).update(updates);
+};
+
+// ── 缺貨通知監聽 ─────────────────────────────────────────
+let oosReports = {};
+let isFirstOosLoad = true;
+
+db.ref('oos_reports').on('value', (snap) => {
+  const data = snap.exists() ? snap.val() : {};
+  const prevIds = new Set(Object.keys(oosReports));
+  oosReports = data;
+
+  if (!isFirstOosLoad) {
+    Object.entries(data).forEach(([id, r]) => {
+      if (!prevIds.has(id) && r.status === 'unread') notifyOos(r);
+    });
+  }
+  isFirstOosLoad = false;
+  renderOosCards();
+});
+
+function notifyOos(r) {
+  const items = (r.items||[]).map(i => i.nameZh || i.nameEn || '備品').join('、');
+  const who = r.reportedBy || '房務員';
+  const room = r.requestRoom ? ` (${r.requestRoom} 號房)` : '';
+
+  if (Notification.permission === 'granted') {
+    try {
+      new Notification(`⚠ 缺貨通報${room}`, {
+        body: `${who} 回報：${items}`,
+        tag: 'oos-' + Date.now(),
+        requireInteraction: true,
+      });
+    } catch(e) {}
+  }
+
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `<div class="toast-title">⚠ 缺貨通報${room}</div><div class="toast-body">${who} 回報：${items}</div>`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 8000);
+
+  if (soundEnabled) playAlert();
+}
+
+function renderOosCards() {
+  const section = document.getElementById('oosSection');
+  const list = document.getElementById('oosCardList');
+  const badge = document.getElementById('oosBadge');
+  if (!section || !list || !badge) return;
+
+  const unread = Object.entries(oosReports)
+    .filter(([, r]) => r.status === 'unread')
+    .sort((a, b) => b[1].reportedAt - a[1].reportedAt);
+
+  badge.textContent = unread.length;
+  section.style.display = unread.length ? 'block' : 'none';
+
+  if (!unread.length) { list.innerHTML = ''; return; }
+
+  list.innerHTML = unread.map(([id, r]) => {
+    const items = (r.items||[]).map(i =>
+      `<span class="oos-item-chip">${i.icon||'📦'} ${i.nameZh||i.nameEn||'備品'}</span>`
+    ).join('');
+    const timeStr = new Date(r.reportedAt).toLocaleString('zh-TW',
+      { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit', hour12:false });
+    const linkedReq = r.requestRoom
+      ? `<div class="oos-linked-req">📋 關聯訂單：${r.requestBuilding||''} ${r.requestRoom} 號房</div>` : '';
+    const remark = r.remark
+      ? `<div class="oos-remark-box">💬 ${r.remark}</div>` : '';
+
+    return `<div class="oos-card">
+      <div class="oos-card-header">
+        <div class="oos-card-who">🙋 <strong>${r.reportedBy||'房務員'}</strong> 回報缺貨</div>
+        <div class="oos-card-time">${timeStr}</div>
+      </div>
+      <div class="oos-items-wrap">${items}</div>
+      ${linkedReq}
+      ${remark}
+      <button class="oos-dismiss-btn" onclick="dismissOos('${id}')">✓ 已知悉</button>
+      <div style="clear:both"></div>
+    </div>`;
+  }).join('');
+}
+
+function dismissOos(oosId) {
+  const oos = oosReports[oosId];
+  if (!oos) return;
+
+  // 1. 標記缺貨通知為已讀
+  db.ref(`oos_reports/${oosId}`).update({ status: 'read', readAt: Date.now() });
+
+  // 2. 若有關聯訂單，取消該訂單並記錄缺貨資訊
+  if (oos.requestId && allRequests[oos.requestId]) {
+    const oosItems = (oos.items||[]).map(i => i.nameZh || i.nameEn || '備品').join('、');
+    db.ref(`requests/${oos.requestId}`).update({
+      status: 'cancelled',
+      cancelledReason: 'oos',
+      oosItems: oosItems,
+      cancelledAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+  }
+}
+
+// ── DND 關燈提醒 ──────────────────────────────────────────
+function sendDndNotify(requestId, lang) {
+  if (!confirm('確定要發送「請關閉請勿打擾燈號」通知給客人嗎？')) return;
+  db.ref('dnd_notify').push({
+    requestId,
+    lang: lang || 'zh',
+    sentBy: 'staff',
+    sentAt: Date.now(),
+    seenByGuest: false,
+  }).then(() => {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = '<div class="toast-title">🔴 已發送關燈提醒給客人</div>';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  });
+}
+
+// 監聽 dnd_notify，讓櫃檯也能看到提醒記錄
+let dndReports = {};
+let isFirstDndLoad = true;
+
+db.ref('dnd_notify').on('value', (snap) => {
+  const data = snap.exists() ? snap.val() : {};
+  const prevIds = new Set(Object.keys(dndReports));
+  dndReports = data;
+
+  if (!isFirstDndLoad) {
+    Object.entries(data).forEach(([id, r]) => {
+      if (!prevIds.has(id)) {
+        // 新的 DND 通知：在對應訂單卡片上閃爍提示
+        const reqCard = document.getElementById(`req_${r.requestId}`);
+        if (reqCard) {
+          reqCard.style.borderColor = 'rgba(217,107,107,0.6)';
+          setTimeout(() => { reqCard.style.borderColor = ''; }, 5000);
+        }
+        // Toast 提示
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        const req = allRequests[r.requestId];
+        const prefix = req ? getBuildingPrefix(req.building) : '';
+        const room = req ? `${prefix}${req.room}` : '';
+        toast.innerHTML = `<div class="toast-title">🔴 已發送關燈提醒${room ? '給 ' + room + ' 號房' : ''}</div><div class="toast-body">客人已收到通知</div>`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+      }
+    });
+  }
+  isFirstDndLoad = false;
+
+  // 同步更新訂單卡片上的 DND 提醒狀態
+  renderDndBadges();
+});
+
+function renderDndBadges() {
+  // 在有 DND 通知的訂單卡片顯示標記
+  const recent = Object.values(dndReports).filter(r => Date.now() - r.sentAt < 30 * 60 * 1000); // 30分鐘內
+  Object.entries(allRequests).forEach(([id]) => {
+    const card = document.getElementById(`req_${id}`);
+    if (!card) return;
+    const hasDnd = recent.some(r => r.requestId === id);
+    let badge = card.querySelector('.dnd-sent-badge');
+    if (hasDnd && !badge) {
+      badge = document.createElement('div');
+      badge.className = 'dnd-sent-badge';
+      badge.style.cssText = 'font-size:11px;color:#D96B6B;background:rgba(217,107,107,0.08);border:1px solid rgba(217,107,107,0.2);border-radius:6px;padding:4px 10px;margin-top:4px;display:inline-block';
+      badge.textContent = '🔴 已發送關燈提醒';
+      const actions = card.querySelector('.req-actions');
+      if (actions) actions.parentNode.insertBefore(badge, actions);
+    } else if (!hasDnd && badge) {
+      badge.remove();
+    }
+  });
+}
+
+// ── Download ────────────────────────────────────────────
+function openDownloadModal() {
+  // 預設日期：今天
+  const today = new Date().toISOString().split('T')[0];
+  const monthAgo = new Date(Date.now() - 30*24*60*60*1000).toISOString().split('T')[0];
+  document.getElementById('dlDateFrom').value = monthAgo;
+  document.getElementById('dlDateTo').value = today;
+  document.getElementById('dlModalOverlay').classList.add('show');
+};
+
+function closeDownloadModal() {
+  document.getElementById('dlModalOverlay').classList.remove('show');
+};
+
+function doDownload() {
+  const buildingFilter = document.getElementById('dlBuilding').value;
+  const statusFilter   = document.getElementById('dlStatus').value;
+  const dateFrom = document.getElementById('dlDateFrom').value;
+  const dateTo   = document.getElementById('dlDateTo').value;
+  const format   = document.getElementById('dlFormat').value;
+
+  const fromTs = dateFrom ? new Date(dateFrom + 'T00:00:00').getTime() : 0;
+  const toTs   = dateTo   ? new Date(dateTo   + 'T23:59:59').getTime() : Infinity;
+
+  const buildingMap = { tranquil:'沁海館', moment:'煙波花蓮花時間', serenity:'山闊館' };
+
+  let rows = Object.entries(allRequests).map(([id, r]) => ({ id, ...r }));
+
+  // 篩選
+  if (buildingFilter !== 'all') rows = rows.filter(r => r.building === buildingFilter);
+  if (statusFilter !== 'all')   rows = rows.filter(r => r.status === statusFilter);
+  rows = rows.filter(r => r.createdAt >= fromTs && r.createdAt <= toTs);
+
+  // 排序：時間由舊到新
+  rows.sort((a, b) => a.createdAt - b.createdAt);
+
+  if (!rows.length) { alert('沒有符合條件的記錄'); return; }
+
+  const statusLabel = { pending:'待處理', processing:'處理中', done:'已完成' };
+
+  if (format === 'csv') {
+    const BOM = '﻿';
+    const headers = ['服務單號','館別','房號','狀態','項目','備註','送出時間','更新時間'];
+    const csvRows = rows.map(r => {
+      const refId = r.id.slice(-6).toUpperCase();
+      const building = r.buildingZh || buildingMap[r.building] || r.building || '';
+      const status = statusLabel[r.status] || r.status;
+      const items = (r.items || []).map(i => `${i.nameZh || i.nameEn || i.nameJa || '未知備品'}×${i.qty}`).join('、');
+      const remark = (r.remark || '').replace(/,/g, '，');
+      const createdAt = new Date(r.createdAt).toLocaleString('zh-TW', { hour12:false });
+      const updatedAt = r.updatedAt ? new Date(r.updatedAt).toLocaleString('zh-TW', { hour12:false }) : '—';
+      return [refId, building, r.room, status, items, remark, createdAt, updatedAt]
+        .map(v => `"${v}"`).join(',');
+    });
+    const csvContent = BOM + [headers.join(','), ...csvRows].join('\n');
+    downloadFile(csvContent, `服務記錄_${dateFrom}_${dateTo}.csv`, 'text/csv;charset=utf-8');
+  } else {
+    const lines = [
+      `煙波花蓮太魯閣｜服務需求記錄`,
+      `匯出時間：${new Date().toLocaleString('zh-TW', { hour12:false })}`,
+      `期間：${dateFrom} ~ ${dateTo}`,
+      `共 ${rows.length} 筆`,
+      '='.repeat(50),
+      '',
+    ];
+    rows.forEach((r, i) => {
+      const refId = r.id.slice(-6).toUpperCase();
+      const building = r.buildingZh || buildingMap[r.building] || '';
+      const status = statusLabel[r.status] || r.status;
+      const items = (r.items || []).map(i => `${i.nameZh || i.nameEn || i.nameJa || '未知備品'}×${i.qty}`).join('、');
+      const createdAt = new Date(r.createdAt).toLocaleString('zh-TW', { hour12:false });
+      lines.push(`#${i+1}  單號：${refId}`);
+      lines.push(`    館別：${building}　房號：${r.room}　狀態：${status}`);
+      lines.push(`    項目：${items}`);
+      if (r.remark) lines.push(`    備註：${r.remark}`);
+      lines.push(`    時間：${createdAt}`);
+      lines.push('');
+    });
+    downloadFile(lines.join('\n'), `服務記錄_${dateFrom}_${dateTo}.txt`, 'text/plain;charset=utf-8');
+  }
+
+  closeDownloadModal();
+};
+
+function downloadFile(content, filename, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ── Filter ─────────────────────────────────────────────
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`filter-${f}`).classList.add('active');
+  renderRequests();
+};
+
+// ── Stats ──────────────────────────────────────────────
+function updateStats() {
+  const reqs = Object.values(allRequests);
+  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+
+  const pending = reqs.filter(r => r.status === 'pending').length;
+  const processing = reqs.filter(r => r.status === 'processing').length;
+  const done = reqs.filter(r => r.status === 'done' && r.createdAt >= todayStart.getTime()).length;
+
+  document.getElementById('statPending').textContent = pending;
+  document.getElementById('statProcessing').textContent = processing;
+  document.getElementById('statDone').textContent = done;
+
+  const all = reqs.length;
+  document.getElementById('count-all').textContent = all;
+  document.getElementById('count-pending').textContent = pending;
+  document.getElementById('count-processing').textContent = processing;
+  document.getElementById('count-done').textContent = done;
+}
+</script>
+</body>
+</html>

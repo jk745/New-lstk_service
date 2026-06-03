@@ -1116,6 +1116,36 @@
   </div>
 </div>
 
+<!-- ══ 轉單/改派 Modal ══ -->
+<div class="oos-overlay" id="reassignOverlay">
+  <div class="oos-sheet" style="max-height: 85vh; overflow-y: auto;">
+    <div class="oos-handle"></div>
+    <div class="oos-title">🔄 轉移案件給其他同仁</div>
+    <div class="oos-context" id="reassignContext" style="margin-bottom: 15px; font-size:13px; font-weight:normal; line-height:1.45;"></div>
+
+    <div class="oos-section-label" style="margin-top:15px">1. 選擇在線的房務部同仁：</div>
+    <div style="margin: 8px 0 12px 0;">
+      <select id="reassignSelect" onchange="checkReassignSubmit()" style="width: 100%; box-sizing: border-box; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: #1f2937; color: #fff; font-size: 15px; outline:none;">
+        <option value="">載入中…</option>
+      </select>
+    </div>
+
+    <div class="oos-section-label">2. 或直接手動輸入人員姓名：</div>
+    <div style="margin: 8px 0;">
+      <input type="text" id="reassignCustomName" oninput="checkReassignSubmit()" placeholder="請輸入姓名" style="width: 100%; box-sizing: border-box; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: #171e29; color: #fff; font-size: 15px; outline:none;" />
+    </div>
+
+    <div style="margin: 15px 0 10px 0; font-size: 11px; color: var(--text-dim); line-height:1.4;">
+      * 系統會優先列出當在線的房務同仁。手動輸入或選擇後點擊按鈕即可完成轉單手續。
+    </div>
+
+    <div class="oos-actions" style="margin-top: 25px;">
+      <button class="oos-btn-cancel" onclick="closeReassignModal()">取消</button>
+      <button class="oos-btn-submit" id="reassignSubmitBtn" onclick="submitReassign()" style="background: var(--gold); color: #000; font-weight: bold; border: none; opacity: 1;" disabled>確認改派</button>
+    </div>
+  </div>
+</div>
+
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -1450,6 +1480,7 @@ function renderCard(req) {
     // 我已接單，確認庫存中 → 顯示「前往」和「缺貨」按鈕
     const confirmMsg = hkLang === 'en' ? typeUi.actions.confirm.en : typeUi.actions.confirm.zh;
     const goLabel = hkLang === 'en' ? typeUi.actions.go.en : typeUi.actions.go.zh;
+    const reassignLabel = hkLang === 'en' ? '🔄 Transfer Case' : '🔄 轉移給其他同仁';
     actions = `
       <div style="font-size:11px;color:rgba(167,139,250,0.7);margin-bottom:8px;padding:6px 10px;background:rgba(167,139,250,0.06);border-radius:8px;border:1px solid rgba(167,139,250,0.15)">
         ${confirmMsg}
@@ -1459,13 +1490,19 @@ function renderCard(req) {
       const oosLabel = hkLang === 'en' ? '⚠ Out of Stock' : '⚠ 缺貨';
       actions += `<button class="action-btn btn-oos" data-oos-request-id="${escapeHtml(req.id)}">${oosLabel}</button>`;
     }
+    actions += `<button class="action-btn" style="background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.3); color:#F59E0B; margin-top:6px;" onclick="openReassignModal('${req.id}')">${reassignLabel}</button>`;
 
   } else if (req.status === 'assigned' && isAssignedToOther) {
-    actions = `<button class="action-btn btn-secondary" disabled>已由 ${escapeHtml(req.assignedTo)} ${typeUi.actions.otherAssigned}</button>`;
+    const takeOverLabel = hkLang === 'en' ? '🙋 Take Over Order' : '🙋 轉交給我處理';
+    actions = `
+      <button class="action-btn btn-secondary" style="opacity:0.6" disabled>已由 ${escapeHtml(req.assignedTo)} ${typeUi.actions.otherAssigned}</button>
+      <button class="action-btn" style="background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.3); color:#A78BFA; margin-top:6px;" onclick="takeOverOrder('${req.id}')">${takeOverLabel}</button>
+    `;
 
   } else if (req.status === 'processing' && isAssignedToMe) {
     const processingLabel = hkLang === 'en' ? typeUi.actions.processing.en : typeUi.actions.processing.zh;
     const arrivedLabel = hkLang === 'en' ? typeUi.actions.done.en : typeUi.actions.done.zh;
+    const reassignLabel = hkLang === 'en' ? '🔄 Transfer Case' : '🔄 轉移給其他同仁';
     actions = `
       <button class="action-btn btn-going" style="opacity:0.4;cursor:default" disabled>${processingLabel}</button>
       <button class="action-btn btn-done" onclick="updateStatus('${req.id}','done')">${arrivedLabel}</button>`;
@@ -1473,9 +1510,14 @@ function renderCard(req) {
       const dndLabel = hkLang === 'en' ? '🔴 DND Reminder' : '🔴 提醒關燈';
       actions += `<button class="action-btn btn-oos" style="background:rgba(217,107,107,0.12);border-color:rgba(217,107,107,0.3);color:#D96B6B" onclick="sendDndNotify('${req.id}','${req.lang||'zh'}')">${dndLabel}</button>`;
     }
+    actions += `<button class="action-btn" style="background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.3); color:#F59E0B; margin-top:6px;" onclick="openReassignModal('${req.id}')">${reassignLabel}</button>`;
 
   } else if (req.status === 'processing' && isAssignedToOther) {
-    actions = `<button class="action-btn btn-secondary" disabled>已由 ${escapeHtml(req.assignedTo)} ${typeUi.actions.otherProcessing}</button>`;
+    const takeOverLabel = hkLang === 'en' ? '🙋 Take Over Order' : '🙋 轉交給我處理';
+    actions = `
+      <button class="action-btn btn-secondary" style="opacity:0.6" disabled>已由 ${escapeHtml(req.assignedTo)} ${typeUi.actions.otherProcessing}</button>
+      <button class="action-btn" style="background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.3); color:#A78BFA; margin-top:6px;" onclick="takeOverOrder('${req.id}')">${takeOverLabel}</button>
+    `;
 
   } else if (req.status === 'done') {
     actions = `<button class="action-btn btn-secondary" style="opacity:0.5" disabled>${typeUi.actions.completed}</button>`;
@@ -2179,6 +2221,133 @@ function checkInstallPrompt() {
     setTimeout(() => showInstallBanner('ios'), 2500);
   }
   // Android 的引導由 beforeinstallprompt 事件觸發
+}
+
+// ── 臨時換人接單 / 轉單功能 (Reassigment) ────────────────
+let onlineStaff = [];
+db.ref('fcm_tokens').on('value', (snap) => {
+  if (snap.exists()) {
+    // 過濾掉房務員自己所在的 Token 鍵名
+    onlineStaff = Object.keys(snap.val()).filter(name => name && name !== staffName);
+  } else {
+    onlineStaff = [];
+  }
+});
+
+function takeOverOrder(id) {
+  const req = allRequests[id];
+  if (!req) return;
+  if (req.status !== 'assigned' && req.status !== 'processing') {
+    showToast('❌ 只有被接單或前往中的案件才能轉單');
+    return;
+  }
+  if (req.assignedTo === staffName) {
+    showToast('🤝 此案件已經是您接單處理了');
+    return;
+  }
+  const prefix = getBuildingPrefix(req.building);
+  const confirmMsg = hkLang === 'en' 
+    ? `Are you sure you want to transfer Room ${prefix}${req.room} from ${req.assignedTo || 'another'} to yourself?` 
+    : `確定要把房號 ${prefix}${req.room} 的需求，從「${req.assignedTo || '同仁'}」轉交給您「${staffName}」親自處理嗎？`;
+  
+  if (!confirm(confirmMsg)) return;
+
+  db.ref(`requests/${id}`).update({
+    assignedTo: staffName,
+    assignedAt: Date.now(),
+    updatedAt: Date.now()
+  });
+  showToast(hkLang === 'en' ? '✅ Case taken over successfully!' : '✅ 已接手成功！請依序前往處理。');
+}
+
+let reassignRequestId = null;
+
+function openReassignModal(id) {
+  const req = allRequests[id];
+  if (!req) return;
+  reassignRequestId = id;
+
+  const prefix = getBuildingPrefix(req.building);
+  const items = (req.items||[]).map(i => `${i.nameZh || i.nameEn || '備品'}×${i.qty}`).join('、');
+  const contextEl = document.getElementById('reassignContext');
+
+  contextEl.innerHTML = hkLang === 'en' ? `
+    <div style="background: rgba(255,255,255,0.04); padding:10px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.06);">
+      Room: <strong>${prefix}${req.room}</strong> (${req.buildingZh || ''})<br/>
+      Items: ${items}<br/>
+      Assigned to: <strong>${req.assignedTo || 'None'}</strong>
+    </div>
+  ` : `
+    <div style="background: rgba(255,255,255,0.04); padding:10px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.06); color: #ccc;">
+      房號：<strong>${prefix}${req.room} 號房</strong> (${req.buildingZh || ''})<br/>
+      項目：${items}<br/>
+      目前接單：<strong>${req.assignedTo || '無'}</strong>
+    </div>
+  `;
+
+  // Draw dropdown 
+  const select = document.getElementById('reassignSelect');
+  select.innerHTML = hkLang === 'en' ? '<option value="">-- Choose Online Colleague --</option>' : '<option value="">-- 點擊選擇在線同仁 --</option>';
+
+  if (onlineStaff && onlineStaff.length > 0) {
+    onlineStaff.forEach(name => {
+      const option = document.createElement('option');
+      option.value = name;
+      option.textContent = `👤 ${name} (在線)`;
+      select.appendChild(option);
+    });
+  } else {
+    const option = document.createElement('option');
+    option.value = "";
+    option.textContent = hkLang === 'en' ? "No other online colleague currently" : "目前暫無其它在線同仁";
+    option.disabled = true;
+    select.appendChild(option);
+  }
+
+  document.getElementById('reassignCustomName').value = '';
+  checkReassignSubmit();
+
+  document.getElementById('reassignOverlay').classList.add('show');
+}
+
+function closeReassignModal() {
+  document.getElementById('reassignOverlay').classList.remove('show');
+  reassignRequestId = null;
+}
+
+function checkReassignSubmit() {
+  const selectVal = document.getElementById('reassignSelect').value;
+  const customVal = document.getElementById('reassignCustomName').value.trim();
+  const btn = document.getElementById('reassignSubmitBtn');
+  if (selectVal || customVal) {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  } else {
+    btn.disabled = true;
+    btn.style.opacity = '0.4';
+  }
+}
+
+function submitReassign() {
+  if (!reassignRequestId || !allRequests[reassignRequestId]) return;
+  
+  const selectVal = document.getElementById('reassignSelect').value;
+  const customVal = document.getElementById('reassignCustomName').value.trim();
+  const targetStaff = customVal || selectVal;
+
+  if (!targetStaff) {
+    showToast(hkLang === 'en' ? 'Please select or enter a colleague name' : '請選擇或輸入接收此訂單的同仁姓名');
+    return;
+  }
+
+  db.ref(`requests/${reassignRequestId}`).update({
+    assignedTo: targetStaff,
+    assignedAt: Date.now(),
+    updatedAt: Date.now()
+  });
+
+  showToast(hkLang === 'en' ? `✅ Case successfully transferred to ${targetStaff}` : `✅ 已成功轉單給 ${targetStaff}！`);
+  closeReassignModal();
 }
 </script>
 </body>

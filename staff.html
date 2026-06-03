@@ -863,6 +863,34 @@
   </div>
 </div>
 
+<!-- Staff Direct Assign / Reassign Modal -->
+<div class="dl-modal-overlay" id="staffReassignOverlay">
+  <div class="dl-modal" style="width: 380px;">
+    <div class="dl-modal-title">🔄 指派/改派案件</div>
+
+    <div class="dl-field">
+      <div id="reassignModalContext" style="font-size:12.5px; opacity:0.85; margin-bottom:15px; padding:10px 12px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); line-height:1.5; color: #fff;"></div>
+    </div>
+
+    <div class="dl-field">
+      <label>1. 選擇目前在線的房務員：</label>
+      <select id="staffReassignSelect" onchange="checkStaffReassignBtn()" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 10px 12px; color: var(--text); font-size: 14px; outline: none;">
+        <option value="">載入中…</option>
+      </select>
+    </div>
+
+    <div class="dl-field" style="margin-top:14px">
+      <label>2. 或直接手動輸入人員姓名：</label>
+      <input type="text" id="staffReassignCustomName" oninput="checkStaffReassignBtn()" placeholder="輔助輸入：例：曉明" style="width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 10px 12px; color: var(--text); font-size: 14px; outline: none;" />
+    </div>
+
+    <div class="dl-actions" style="margin-top: 24px;">
+      <button class="dl-btn-cancel" onclick="closeStaffReassignModal()">取消</button>
+      <button class="dl-btn-confirm" id="staffReassignSubmitBtn" onclick="submitStaffReassign()" style="background: var(--gold); border: 1px solid var(--gold); color: #000; font-weight: bold;" disabled>確認派遣</button>
+    </div>
+  </div>
+</div>
+
 <!-- Firebase compat (全域可用，解決 module 作用域問題) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -1224,6 +1252,107 @@ function syncRoomIssueRiskState() {
   renderRiskRequests(riskEntries);
 }
 
+// ── Reassign / Direct Assign Functionality ──────────────
+let onlineStaff = [];
+db.ref('fcm_tokens').on('value', (snap) => {
+  if (snap.exists()) {
+    onlineStaff = Object.keys(snap.val()).filter(name => name && name.trim());
+  } else {
+    onlineStaff = [];
+  }
+});
+
+let currentReassignId = null;
+
+window.openStaffReassignModal = function(id) {
+  const req = allRequests[id];
+  if (!req) return;
+  currentReassignId = id;
+
+  const prefix = getBuildingPrefix(req.building);
+  const items = (req.items||[]).map(i => `${i.nameZh || i.nameEn || '備品'}×${i.qty}`).join('、');
+  const contextEl = document.getElementById('reassignModalContext');
+  contextEl.innerHTML = `
+    🚪 房號：<strong>${prefix}${req.room} 號房</strong> (${req.buildingZh || ''})<br/>
+    📋 需求：${items}<br/>
+    👤 目前接單：<strong>${req.assignedTo || '無'}</strong> ${req.status === 'pending' ? '(待指派)' : `(${req.status === 'assigned' ? '已接單' : '處理中'})`}
+  `;
+
+  const select = document.getElementById('staffReassignSelect');
+  select.innerHTML = '<option value="">-- 請選擇在線同仁 --</option>';
+  
+  if (onlineStaff && onlineStaff.length > 0) {
+    onlineStaff.forEach(name => {
+      const option = document.createElement('option');
+      option.value = name;
+      option.textContent = `👤 ${name} (在線)`;
+      select.appendChild(option);
+    });
+  } else {
+    const option = document.createElement('option');
+    option.value = "";
+    option.textContent = "目前無在線房務員名單";
+    option.disabled = true;
+    select.appendChild(option);
+  }
+
+  document.getElementById('staffReassignCustomName').value = '';
+  checkStaffReassignBtn();
+
+  document.getElementById('staffReassignOverlay').classList.add('show');
+};
+
+window.closeStaffReassignModal = function() {
+  document.getElementById('staffReassignOverlay').classList.remove('show');
+  currentReassignId = null;
+};
+
+window.checkStaffReassignBtn = function() {
+  const selectVal = document.getElementById('staffReassignSelect').value;
+  const customVal = document.getElementById('staffReassignCustomName').value.trim();
+  const btn = document.getElementById('staffReassignSubmitBtn');
+  if (selectVal || customVal) {
+    btn.disabled = false;
+  } else {
+    btn.disabled = true;
+  }
+};
+
+window.submitStaffReassign = function() {
+  if (!currentReassignId || !allRequests[currentReassignId]) return;
+  
+  const selectVal = document.getElementById('staffReassignSelect').value;
+  const customVal = document.getElementById('staffReassignCustomName').value.trim();
+  const targetStaff = customVal || selectVal;
+
+  if (!targetStaff) {
+    alert('請選擇或輸入接單的同仁姓名');
+    return;
+  }
+
+  const req = allRequests[currentReassignId];
+  const now = Date.now();
+  const updates = {
+    assignedTo: targetStaff,
+    assignedAt: now,
+    updatedAt: now
+  };
+  if (req.status === 'pending') {
+    updates.status = 'assigned';
+  }
+
+  db.ref(`requests/${currentReassignId}`).update(updates);
+  
+  // Show localized toast message
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `<div class="toast-title">🔄 指派/改派成功</div><div class="toast-body">已將本單成功分派給：${targetStaff}</div>`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+
+  closeStaffReassignModal();
+};
+
 // ── Firebase Listen ────────────────────────────────────
 db.ref('requests').on('value', (snap) => {
   const data = snap.exists() ? snap.val() : {};
@@ -1323,7 +1452,8 @@ function renderRequests() {
       : '';
     const actions = req.status === 'pending'
       ? `<button class="action-btn processing" onclick="updateStatus('${req.id}', 'processing')">🔵 標記處理中</button>
-         <button class="action-btn done" onclick="updateStatus('${req.id}', 'done')">✅ 標記完成</button>`
+         <button class="action-btn done" onclick="updateStatus('${req.id}', 'done')">✅ 標記完成</button>
+         <button class="action-btn" style="background:rgba(167,139,250,0.15);border-color:rgba(167,139,250,0.35);color:#C4B5FD" onclick="openStaffReassignModal('${req.id}')">👤 直接派單</button>`
       : req.status === 'processing'
       ? `<button class="action-btn done" onclick="updateStatus('${req.id}', 'done')">✅ 標記已完成</button>
          <button class="action-btn" onclick="updateStatus('${req.id}', 'pending')">↩ 退回待處理</button>
@@ -1353,7 +1483,16 @@ function renderRequests() {
           <div class="items-list">${items}</div>
           ${isRoomIssue && roomIssueRisk ? `<div class="remark-box" style="border-left-color:rgba(240,154,115,0.45);color:#FFD5C2">⚠ ${roomIssueRisk.riskConfig.inlineLabel}</div>` : ''}
           ${remark}
-          ${req.assignedTo ? `<div style="display:flex;align-items:center;gap:8px;background:rgba(167,139,250,0.07);border:1px solid rgba(167,139,250,0.2);border-radius:8px;padding:7px 12px;margin-bottom:8px;font-size:12px;color:#A78BFA">🙋 房務員 <strong style="margin:0 3px">${req.assignedTo}</strong> 已接單${req.assignedAt ? ' ・ ' + new Date(req.assignedAt).toLocaleString('zh-TW',{hour:'2-digit',minute:'2-digit',hour12:false}) : ''}</div>` : ''}
+          ${req.assignedTo && (req.status === 'assigned' || req.status === 'processing') ? `
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(167,139,250,0.07);border:1px solid rgba(167,139,250,0.2);border-radius:8px;padding:7px 12px;margin-bottom:8px;font-size:12px;color:#A78BFA">
+              <div style="display:flex;align-items:center;gap:4px">
+                🙋 房務員 <strong style="margin:0 3px">${req.assignedTo}</strong> 已接單${req.assignedAt ? ' ・ ' + new Date(req.assignedAt).toLocaleString('zh-TW',{hour:'2-digit',minute:'2-digit',hour12:false}) : ''}
+              </div>
+              <button class="action-btn" style="padding:3px 8px;font-size:11px;margin-left:auto;background:rgba(167,139,250,0.18);border-color:rgba(167,139,250,0.35);color:#C4B5FD;white-space:nowrap;cursor:pointer;border-radius:6px;" onclick="openStaffReassignModal('${req.id}')">🔄 改派房務</button>
+            </div>
+          ` : req.assignedTo ? `
+            <div style="display:flex;align-items:center;gap:8px;background:rgba(167,139,250,0.07);border:1px solid rgba(167,139,250,0.2);border-radius:8px;padding:7px 12px;margin-bottom:8px;font-size:12px;color:#A78BFA">🙋 房務員 <strong style="margin:0 3px">${req.assignedTo}</strong> 已接單${req.assignedAt ? ' ・ ' + new Date(req.assignedAt).toLocaleString('zh-TW',{hour:'2-digit',minute:'2-digit',hour12:false}) : ''}</div>
+          ` : ''}
           <div class="req-actions">${actions}</div>
         </div>
       </div>`;

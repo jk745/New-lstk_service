@@ -1625,7 +1625,12 @@ function getElapsed(ts) {
   return '剛剛';
 }
 
-// setInterval(() => { if (Object.keys(allRequests).length) renderRequests(); }, 1000);
+// 每秒自動重繪一次，更新所有未完成案件的 SLA 倒數計時與已過時間
+setInterval(() => {
+  if (staffName && Object.keys(allRequests).length) {
+    renderRequests();
+  }
+}, 1000);
 document.addEventListener('click', (event) => {
   const oosTrigger = event.target.closest('.btn-oos[data-oos-request-id]');
   if (oosTrigger) {

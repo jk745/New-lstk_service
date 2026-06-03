@@ -1,0 +1,2180 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>房務接單 | Lakeshore Hotel</title>
+
+<!-- PWA：讓手機可以「加入主畫面」當 APP 使用 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="房務接單">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="房務接單">
+<meta name="theme-color" content="#111008">
+<link rel="manifest" id="pwaManifest">
+
+<!-- APP 圖示（iOS / Android） -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23111008'/><text y='.9em' font-size='72' x='50%' text-anchor='middle'>🛎</text></svg>">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A96E;
+    --gold-light: #E8D5A3;
+    --gold-dim: rgba(201,169,110,0.15);
+    --deep: #111008;
+    --surface: #16120D;
+    --card: #1E1912;
+    --card2: #252018;
+    --border: rgba(255,255,255,0.06);
+    --text: #F0EBE2;
+    --text-dim: rgba(240,235,226,0.45);
+    --pending: #E8A94A;
+    --going: #A78BFA;
+    --done: #5BAD7B;
+    --radius: 14px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--deep);
+    color: var(--text);
+    font-family: 'Noto Sans TC', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* ── LOGIN SCREEN ── */
+  #screen-login {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 24px;
+  }
+
+  .login-hotel {
+    font-size: 13px;
+    color: var(--gold);
+    letter-spacing: 0.15em;
+    margin-bottom: 4px;
+    text-align: center;
+  }
+
+  .login-hotel-zh {
+    font-size: 11px;
+    color: rgba(201,169,110,0.5);
+    letter-spacing: 0.2em;
+    text-align: center;
+    margin-bottom: 36px;
+  }
+
+  .login-card {
+    background: var(--card);
+    border: 1px solid rgba(201,169,110,0.15);
+    border-radius: 20px;
+    padding: 32px 28px;
+    width: 100%;
+    max-width: 380px;
+  }
+
+  .login-icon {
+    font-size: 40px;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  .login-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    text-align: center;
+    margin-bottom: 4px;
+  }
+
+  .login-sub {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: center;
+    margin-bottom: 28px;
+    letter-spacing: 0.05em;
+  }
+
+  .login-label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    display: block;
+    text-transform: uppercase;
+  }
+
+  .login-input {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 16px;
+    font-family: inherit;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 20px;
+  }
+
+  .login-input:focus { border-color: var(--gold); }
+  .login-input::placeholder { color: rgba(255,255,255,0.2); font-size: 14px; }
+
+  .login-btn {
+    width: 100%;
+    background: var(--gold);
+    color: var(--deep);
+    border: none;
+    border-radius: 12px;
+    padding: 15px;
+    font-size: 15px;
+    font-family: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.15s;
+  }
+
+  .login-btn:active { opacity: 0.85; transform: scale(0.98); }
+  .login-btn:disabled { background: rgba(255,255,255,0.1); color: var(--text-dim); cursor: not-allowed; transform: none; }
+
+  /* ── MAIN APP ── */
+  #screen-main { display: none; }
+
+  /* TOPBAR */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .topbar-left { display: flex; flex-direction: column; }
+
+  .topbar-hotel {
+    font-size: 10px;
+    color: var(--gold);
+    letter-spacing: 0.12em;
+    margin-bottom: 1px;
+  }
+
+  .topbar-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .staff-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--gold-dim);
+    border: 1px solid rgba(201,169,110,0.25);
+    border-radius: 20px;
+    padding: 6px 14px;
+  }
+
+  .staff-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: var(--deep);
+    font-size: 13px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .staff-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gold);
+  }
+
+  .logout-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 11px;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 2px 0;
+    transition: color 0.15s;
+  }
+
+  .logout-btn:hover { color: var(--text); }
+
+  /* FILTER TABS */
+  .filter-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 14px 16px 10px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .filter-tabs::-webkit-scrollbar { display: none; }
+
+  .filter-tab {
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 7px 16px;
+    font-size: 12px;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .filter-tab.active {
+    background: var(--gold-dim);
+    border-color: rgba(201,169,110,0.35);
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  .filter-tab .count {
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 1px 6px;
+    font-size: 10px;
+  }
+
+  .filter-tab.active .count {
+    background: rgba(201,169,110,0.2);
+  }
+
+  /* LIVE INDICATOR */
+  .live-bar {
+    padding: 0 16px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--done);
+  }
+
+  .live-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--done);
+    animation: blink 2s infinite;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* REQUEST CARDS */
+  .requests-wrap { padding: 0 16px 100px; }
+
+  .req-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+    animation: slideIn 0.25s ease;
+  }
+
+  @keyframes slideIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+
+  .req-card.mine { border-color: rgba(167,139,250,0.3); }
+  .req-card.done-card { opacity: 0.5; }
+
+  /* Timer & Progress Bar */
+  .timer-bar-wrap {
+    height: 6px;
+    background: rgba(255,255,255,0.04);
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(255,255,255,0.02);
+  }
+  
+  .timer-bar {
+    height: 100%;
+    transition: width 1s linear, background-color 0.5s ease;
+    border-radius: 0 4px 4px 0;
+    box-shadow: 0 0 8px currentColor;
+  }
+  
+  .timer-bar.urgent {
+    animation: bar-pulse 1.5s infinite;
+  }
+  
+  .timer-bar.overdue {
+    animation: bar-blink 1s infinite;
+    background-color: #EF4444 !important;
+    width: 100% !important;
+  }
+  
+  @keyframes bar-pulse {
+    0%, 100% { opacity: 0.85; }
+    50% { opacity: 1; filter: brightness(1.2); }
+  }
+  
+  @keyframes bar-blink {
+    0%, 100% { background-color: #EF4444; box-shadow: 0 0 10px #EF4444; }
+    50% { background-color: #7F1D1D; box-shadow: none; }
+  }
+
+  .countdown-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: monospace;
+    letter-spacing: 0.05em;
+  }
+  
+  .badge-normal {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10B981;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+  }
+  
+  .badge-warning {
+    background: rgba(245, 158, 11, 0.12);
+    color: #F59E0B;
+    border: 1px solid rgba(245, 158, 11, 0.25);
+  }
+  
+  .badge-urgent {
+    background: rgba(239, 68, 68, 0.12);
+    color: #EF4444;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    animation: pulse-text 1.5s infinite;
+  }
+  
+  @keyframes pulse-text {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+  }
+
+  /* Card Header */
+  .req-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--card2);
+  }
+
+  .room-tag {
+    background: var(--gold-dim);
+    border: 1px solid rgba(201,169,110,0.3);
+    color: var(--gold);
+    font-size: 20px;
+    font-weight: 900;
+    padding: 4px 14px;
+    border-radius: 8px;
+    letter-spacing: 0.08em;
+    flex-shrink: 0;
+  }
+
+  .req-info { flex: 1; min-width: 0; }
+
+  .req-time {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 2px;
+  }
+
+  .req-building {
+    font-size: 12px;
+    color: var(--gold);
+    opacity: 0.7;
+  }
+
+  .status-pill {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 20px;
+    flex-shrink: 0;
+    letter-spacing: 0.03em;
+  }
+
+  .pill-pending { background: rgba(232,169,74,0.15); color: var(--pending); border: 1px solid rgba(232,169,74,0.2); }
+  .pill-going   { background: rgba(167,139,250,0.15); color: var(--going);   border: 1px solid rgba(167,139,250,0.2); }
+  .pill-done    { background: rgba(91,173,123,0.15);  color: var(--done);    border: 1px solid rgba(91,173,123,0.2); }
+  .pill-cancelled { background: rgba(217,107,107,0.15); color: #D96B6B; border: 1px solid rgba(217,107,107,0.25); font-weight:700; }
+
+  /* Card Body */
+  .req-body { padding: 12px 14px; }
+
+  .item-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+
+  .item-chip {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .item-chip .qty { color: var(--gold); font-size: 11px; }
+
+  .remark-box {
+    background: rgba(255,255,255,0.03);
+    border-left: 2px solid rgba(201,169,110,0.3);
+    padding: 6px 10px;
+    font-size: 12px;
+    color: var(--text-dim);
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 10px;
+    font-style: italic;
+  }
+
+  /* Assigned Info */
+  .assigned-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(167,139,250,0.06);
+    border: 1px solid rgba(167,139,250,0.15);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: var(--going);
+  }
+
+  /* Action Buttons */
+  .req-actions { display: flex; gap: 8px; }
+
+  .action-btn {
+    flex: 1;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 8px;
+    font-size: 13px;
+    font-family: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+    transition: all 0.15s;
+  }
+
+  .action-btn:active { transform: scale(0.97); }
+
+  .btn-accept {
+    background: var(--pending);
+    color: #1A1000;
+  }
+
+  .btn-assigned {
+    background: rgba(167,139,250,0.18);
+    border: 1.5px solid rgba(167,139,250,0.5) !important;
+    color: var(--going);
+  }
+
+  .btn-going {
+    background: var(--going);
+    color: #0D0A1A;
+  }
+
+  .pill-assigned { background: rgba(167,139,250,0.12); color: var(--going); border: 1px solid rgba(167,139,250,0.25); }
+
+  .btn-done {
+    background: var(--done);
+    color: #0A1A10;
+  }
+
+  .btn-secondary {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border) !important;
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-dim);
+  }
+
+  .empty-icon { font-size: 44px; margin-bottom: 14px; opacity: 0.3; }
+  .empty-text { font-size: 15px; margin-bottom: 6px; }
+  .empty-sub { font-size: 12px; opacity: 0.6; }
+
+  /* SOUND / NOTIFY */
+  .bottom-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 10px 16px 20px;
+    display: flex;
+    gap: 8px;
+  }
+
+  .bottom-btn {
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 12px;
+    color: var(--text-dim);
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+
+  .bottom-btn.on {
+    border-color: rgba(91,173,123,0.4);
+    color: var(--done);
+    background: rgba(91,173,123,0.05);
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    background: var(--card2);
+    border: 1px solid rgba(201,169,110,0.3);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--gold);
+    z-index: 200;
+    animation: toastIn 0.25s ease;
+    max-width: 280px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+
+  @keyframes toastIn { from { opacity:0; transform:translateX(12px); } to { opacity:1; transform:translateX(0); } }
+
+  /* ── IN-APP ALERT BANNER（手機主要通知）── */
+  .alert-banner {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 999;
+    background: linear-gradient(135deg, #E8A94A, #C8882A);
+    color: #1A1000;
+    padding: 0;
+    transform: translateY(-100%);
+    transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+  }
+
+  .alert-banner.show {
+    transform: translateY(0);
+  }
+
+  .alert-banner-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+
+  .alert-banner-icon {
+    font-size: 28px;
+    flex-shrink: 0;
+    animation: shake 0.5s ease 0.1s;
+  }
+
+  @keyframes shake {
+    0%,100%{transform:rotate(0)} 25%{transform:rotate(-15deg)} 75%{transform:rotate(15deg)}
+  }
+
+  .alert-banner-content { flex: 1; }
+
+  .alert-banner-title {
+    font-size: 15px;
+    font-weight: 900;
+    margin-bottom: 2px;
+    letter-spacing: 0.02em;
+  }
+
+  .alert-banner-body {
+    font-size: 12px;
+    opacity: 0.8;
+    line-height: 1.4;
+  }
+
+  .alert-banner-close {
+    background: rgba(0,0,0,0.15);
+    border: none;
+    color: #1A1000;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-weight: 700;
+  }
+
+  /* ── 手機 RWD ── */
+  @media (max-width: 600px) {
+    .topbar { padding: 12px 14px; }
+    .topbar-title { font-size: 15px; }
+    .staff-badge { padding: 5px 10px; }
+    .staff-name { font-size: 12px; }
+
+    .filter-tabs { padding: 10px 12px 8px; gap: 6px; }
+    .filter-tab { padding: 6px 12px; font-size: 11px; }
+
+    .requests-wrap { padding: 0 12px 110px; }
+
+    .req-header { padding: 10px 12px; gap: 8px; }
+    .room-tag { font-size: 18px; padding: 4px 10px; }
+    .req-building { font-size: 11px; }
+    .req-time { font-size: 10px; }
+    .status-pill { font-size: 10px; padding: 3px 8px; }
+
+    .req-body { padding: 10px 12px; }
+    .item-chip { font-size: 11px; padding: 3px 8px; }
+
+    .action-btn { padding: 14px 6px; font-size: 13px; border-radius: 10px; }
+
+    .bottom-bar { padding: 10px 12px 24px; gap: 6px; }
+    .bottom-btn { font-size: 11px; padding: 11px 6px; }
+
+    /* 登入頁手機優化 */
+    .login-card { padding: 24px 20px; border-radius: 16px; }
+    .login-btn { padding: 16px; font-size: 16px; }
+
+    /* iOS safe area */
+    .bottom-bar { padding-bottom: max(24px, env(safe-area-inset-bottom)); }
+    #screen-login { padding-bottom: max(32px, env(safe-area-inset-bottom)); }
+  }
+
+  /* ── 加入主畫面引導 Banner ── */
+  .install-banner {
+    display: none;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--card);
+    border-top: 1px solid rgba(201,169,110,0.3);
+    padding: 16px 16px max(16px, env(safe-area-inset-bottom));
+    z-index: 990;
+    animation: slideUpBanner 0.3s ease;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.5);
+  }
+
+  @keyframes slideUpBanner { from { transform:translateY(100%); } to { transform:translateY(0); } }
+
+  .install-banner.show { display: block; }
+
+  .install-banner-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .install-banner-icon {
+    font-size: 36px;
+    flex-shrink: 0;
+  }
+
+  .install-banner-text { flex: 1; }
+
+  .install-banner-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+
+  .install-banner-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .install-banner-close {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px;
+    flex-shrink: 0;
+  }
+
+  .install-banner-actions { display: flex; gap: 8px; }
+
+  .install-btn-primary {
+    flex: 1;
+    background: var(--gold);
+    color: var(--deep);
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 13px;
+    font-family: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .install-btn-primary:active { opacity: 0.8; }
+
+  .install-btn-secondary {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--text-dim);
+    cursor: pointer;
+  }
+
+  /* iOS 步驟說明 */
+  .ios-install-steps {
+    display: none;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.8;
+  }
+
+  .ios-install-steps.show { display: block; }
+  .ios-install-steps strong { color: var(--gold); }
+
+  /* ── iOS 通知說明卡 ── */
+  .ios-hint-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    margin-top: 8px;
+  }
+
+  .ios-hint-card strong { color: var(--gold); }
+
+  /* ── 缺貨回報 Modal ── */
+  .oos-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 600;
+    align-items: flex-end;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .oos-overlay.show { display: flex; animation: bgFadeIn 0.2s ease; }
+  @keyframes bgFadeIn { from{opacity:0} to{opacity:1} }
+
+  .oos-sheet {
+    background: #1E1912;
+    border-radius: 20px 20px 0 0;
+    padding: 20px 20px max(20px, env(safe-area-inset-bottom));
+    width: 100%;
+    max-width: 520px;
+    border-top: 1px solid rgba(217,107,107,0.25);
+    animation: sheetUp 0.3s cubic-bezier(0.32,0.72,0,1);
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+  @keyframes sheetUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+
+  .oos-handle {
+    width: 36px; height: 4px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 2px;
+    margin: 0 auto 16px;
+  }
+
+  .oos-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #D96B6B;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .oos-context {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    border-left: 2px solid rgba(217,107,107,0.3);
+  }
+
+  .oos-section-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  /* 備品選擇清單 */
+  .oos-item-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+
+  .oos-item-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .oos-item-row.selected {
+    background: rgba(217,107,107,0.1);
+    border-color: rgba(217,107,107,0.35);
+  }
+
+  .oos-item-check {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.15);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    transition: all 0.15s;
+  }
+
+  .oos-item-row.selected .oos-item-check {
+    background: #D96B6B;
+    border-color: #D96B6B;
+  }
+
+  .oos-item-name { flex: 1; font-size: 13px; font-weight: 500; }
+  .oos-item-icon { font-size: 18px; }
+
+  /* 備註輸入 */
+  .oos-remark {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--text);
+    outline: none;
+    resize: none;
+    transition: border-color 0.2s;
+    margin-bottom: 14px;
+  }
+  .oos-remark:focus { border-color: rgba(217,107,107,0.4); }
+  .oos-remark::placeholder { color: rgba(255,255,255,0.2); }
+
+  .oos-actions { display: flex; gap: 8px; }
+
+  .oos-btn-cancel {
+    flex: 1; padding: 13px; border-radius: 10px;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+    color: var(--text-dim); font-family: inherit; font-size: 13px; cursor: pointer;
+  }
+
+  .oos-btn-submit {
+    flex: 2; padding: 13px; border-radius: 10px;
+    background: rgba(217,107,107,0.2); border: 1px solid rgba(217,107,107,0.4);
+    color: #D96B6B; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .oos-btn-submit:active { background: rgba(217,107,107,0.35); }
+  .oos-btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* 缺貨回報按鈕 */
+  .btn-oos {
+    background: rgba(217,107,107,0.12);
+    border: 1px solid rgba(217,107,107,0.3) !important;
+    color: #D96B6B;
+    font-weight: 500;
+  }
+
+  /* LANG BTN */
+  .lang-btn {
+    background: transparent;
+    border: 1px solid rgba(201,169,110,0.3);
+    color: rgba(201,169,110,0.6);
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .lang-btn.active { background: var(--gold); color: var(--deep); border-color: var(--gold); font-weight: 600; }
+
+  /* 底部獨立回報按鈕 */
+  .bottom-oos-btn {
+    background: rgba(217,107,107,0.1);
+    border: 1px solid rgba(217,107,107,0.25);
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 12px;
+    color: #D96B6B;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+    width: 100%;
+    margin-top: 6px;
+  }
+  .bottom-oos-btn:active { background: rgba(217,107,107,0.2); }
+</style>
+</head>
+<body>
+
+<!-- ══ IN-APP ALERT BANNER ══ -->
+<div class="alert-banner" id="alertBanner">
+  <div class="alert-banner-inner">
+    <div class="alert-banner-icon">🛎</div>
+    <div class="alert-banner-content">
+      <div class="alert-banner-title" id="alertTitle">新服務需求</div>
+      <div class="alert-banner-body" id="alertBody"></div>
+    </div>
+    <button class="alert-banner-close" onclick="closeAlertBanner()">✕</button>
+  </div>
+</div>
+
+<!-- ══ 加入主畫面引導 Banner ══ -->
+<div class="install-banner" id="installBanner">
+  <div class="install-banner-inner">
+    <div class="install-banner-icon">🛎</div>
+    <div class="install-banner-text">
+      <div class="install-banner-title">安裝到手機桌面</div>
+      <div class="install-banner-sub">加入主畫面，下次直接從桌面開啟，全螢幕使用更方便</div>
+    </div>
+    <button class="install-banner-close" onclick="dismissInstall()">✕</button>
+  </div>
+  <div class="install-banner-actions">
+    <button class="install-btn-primary" id="installActionBtn" onclick="doInstall()">📲 立即安裝</button>
+    <button class="install-btn-secondary" onclick="dismissInstall()">稍後再說</button>
+  </div>
+  <!-- iOS 專用步驟說明 -->
+  <div class="ios-install-steps" id="iosInstallSteps">
+    📌 iOS 安裝步驟：<br>
+    1. 點下方工具列的 <strong>「分享」</strong> 按鈕（方塊加箭頭圖示）<br>
+    2. 選擇 <strong>「加入主畫面」</strong><br>
+    3. 點右上角 <strong>「新增」</strong> 即完成
+  </div>
+</div>
+
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="screen-login">
+  <div class="login-hotel">Lakeshore Hotel Hualien Taroko</div>
+  <div class="login-hotel-zh">煙波花蓮太魯閣</div>
+
+  <div class="login-card">
+    <div class="login-icon">🛎</div>
+    <div class="login-title">房務接單系統</div>
+    <div class="login-sub">Housekeeping Service Platform</div>
+
+    <label class="login-label">請輸入您的姓名</label>
+    <input type="text" class="login-input" id="nameInput"
+      placeholder="例：小明" maxlength="10"
+      oninput="checkLoginBtn()"
+      onkeydown="if(event.key==='Enter') doLogin()">
+    <button class="login-btn" id="loginBtn" onclick="doLogin()" disabled>進入接單系統</button>
+
+    <div style="margin-top:20px;text-align:center;border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;">
+      <a href="/" style="color:var(--gold);font-size:12px;text-decoration:none;letter-spacing:0.05em;display:inline-flex;align-items:center;gap:4px;opacity:0.8;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
+        ← 返回主控門戶頁面 (Home Entrance)
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MAIN SCREEN ══ -->
+<div id="screen-main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-hotel">煙波花蓮太魯閣 · 房務部</div>
+      <div class="topbar-title">接單平台</div>
+      <div style="margin-top:6px">
+        <a href="/" style="font-size:11px;background:rgba(201,169,110,0.15);color:var(--gold-light);border:1px solid rgba(201,169,110,0.3);padding:3px 9px;border-radius:20px;text-decoration:none;font-weight:normal;cursor:pointer;white-space:nowrap;display:inline-block;">← 回主選單 Home</a>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+      <div class="staff-badge">
+        <div class="staff-avatar" id="avatarText">—</div>
+        <span class="staff-name" id="staffNameDisplay">—</span>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <div style="display:flex;gap:3px">
+          <button class="lang-btn active" id="hkLangZh" onclick="setHkLang('zh')">中</button>
+          <button class="lang-btn" id="hkLangEn" onclick="setHkLang('en')">EN</button>
+        </div>
+        <button class="logout-btn" id="logoutBtnLabel" onclick="doLogout()">登出</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Tabs -->
+  <div class="filter-tabs">
+    <button class="filter-tab active" onclick="setFilter('all')" id="tab-all">
+      全部 <span class="count" id="cnt-all">0</span>
+    </button>
+    <button class="filter-tab" onclick="setFilter('pending')" id="tab-pending">
+      🟡 待接單 <span class="count" id="cnt-pending">0</span>
+    </button>
+    <button class="filter-tab" onclick="setFilter('mine')" id="tab-mine">
+      🟣 我的訂單 <span class="count" id="cnt-mine">0</span>
+    </button>
+    <button class="filter-tab" onclick="setFilter('done')" id="tab-done">
+      🟢 已完成 <span class="count" id="cnt-done">0</span>
+    </button>
+  </div>
+
+  <!-- Live -->
+  <div class="live-bar">
+    <div class="live-dot"></div>
+    <span>即時同步中</span>
+    <span style="margin-left:auto;color:var(--text-dim)" id="timeDisplay">—</span>
+  </div>
+
+  <!-- Cards -->
+  <div class="requests-wrap" id="requestsList"></div>
+
+  <!-- Bottom Bar -->
+  <div class="bottom-bar">
+    <button class="bottom-btn" id="soundBtn" onclick="toggleSound()">🔔 提示音：關閉</button>
+    <button class="bottom-btn" id="notifyBtn" onclick="requestNotify()">🔔 啟用推播通知</button>
+    <button class="bottom-btn bottom-oos-btn" onclick="openOosModal(null)">⚠ 回報缺貨</button>
+  </div>
+</div>
+
+<!-- ══ 缺貨回報 Modal ══ -->
+<div class="oos-overlay" id="oosOverlay">
+  <div class="oos-sheet">
+    <div class="oos-handle"></div>
+    <div class="oos-title">⚠ 回報備品缺貨</div>
+    <div class="oos-context" id="oosContext" style="display:none"></div>
+
+    <div class="oos-section-label">選擇缺貨備品（可複選）</div>
+    <div class="oos-item-list" id="oosItemList"></div>
+
+    <div class="oos-section-label">備註說明（選填）</div>
+    <textarea class="oos-remark" id="oosRemark" rows="2" placeholder="例：整批補貨中，預計明日到貨…"></textarea>
+
+    <div class="oos-actions">
+      <button class="oos-btn-cancel" onclick="closeOosModal()">取消</button>
+      <button class="oos-btn-submit" id="oosSubmitBtn" onclick="submitOos()" disabled>回報缺貨</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCFDq7PjC5j--bnHJ9SBglao4_avOCEge8",
+  authDomain: "lakeshore-guest-service.firebaseapp.com",
+  databaseURL: "https://lakeshore-guest-service-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "lakeshore-guest-service",
+  storageBucket: "lakeshore-guest-service.firebasestorage.app",
+  messagingSenderId: "1026886642744",
+  appId: "1:1026886642744:web:225dccc902e0a7d9e00acd"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+let messaging = null;
+try {
+  messaging = firebase.messaging();
+} catch(e) {
+  console.log('FCM not supported:', e);
+}
+
+const VAPID_KEY = "BPUJ4xiIuzDsTwn-Yy84wIm1z_QJRzxr5n2F2odFgjUFu6P9loAnrGFhZ-QKsq5PLOXMnAdsdpbIlb3lVd1HKDk";
+
+// ── State ─────────────────────────────────────────────
+let staffName = '';
+let allRequests = {};
+let currentFilter = 'all';
+let soundEnabled = false;
+let audioCtx = null;
+let isFirstLoad = true;
+
+// ── Building prefix ────────────────────────────────────
+function getBuildingPrefix(b) {
+  return { tranquil:'A', moment:'B', serenity:'C' }[b] || '';
+}
+
+// ── Time ──────────────────────────────────────────────
+function updateTime() {
+  const el = document.getElementById('timeDisplay');
+  if (el) el.textContent = new Date().toLocaleString('zh-TW',
+    { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
+}
+setInterval(updateTime, 1000);
+updateTime();
+
+// ── Login ─────────────────────────────────────────────
+function checkLoginBtn() {
+  const val = document.getElementById('nameInput').value.trim();
+  document.getElementById('loginBtn').disabled = val.length === 0;
+}
+
+function doLogin() {
+  const name = document.getElementById('nameInput').value.trim();
+  if (!name) return;
+  staffName = name;
+  sessionStorage.setItem('hk_staff', name);
+
+  document.getElementById('staffNameDisplay').textContent = name;
+  document.getElementById('avatarText').textContent = name.charAt(0);
+  document.getElementById('screen-login').style.display = 'none';
+  document.getElementById('screen-main').style.display = 'block';
+
+  loadRequests();
+  checkInstallPrompt();
+  applyHkI18n();
+
+  // 登入後自動請求通知權限
+  setTimeout(() => {
+    // 統一呼叫 requestNotify，內部會處理所有裝置情境
+    if (!('Notification' in window)) {
+      // iOS：直接啟用 in-app
+      requestNotify();
+    } else if (Notification.permission === 'granted') {
+      // 已允許：重新申請 FCM token（確保休眠推播正常）
+      requestNotify();
+    } else if (Notification.permission === 'default') {
+      // 尚未詢問：自動詢問
+      requestNotify();
+    }
+  }, 1000);
+}
+
+function doLogout() {
+  if (!confirm('確定要登出嗎？')) return;
+
+  const nameKey = staffName.replace(/[^a-zA-Z0-9一-鿿]/g, '_');
+
+  // 1. 從 Firebase 刪除此裝置的 FCM token，停止接收推播
+  db.ref(`fcm_tokens/${nameKey}`).remove().catch(() => {});
+
+  // 2. 取消 FCM 訂閱（本機）
+  if (messaging) {
+    messaging.deleteToken().catch(() => {});
+  }
+
+  // 3. 重置狀態
+  staffName = '';
+  sessionStorage.removeItem('hk_staff');
+  allRequests = {};
+  isFirstLoad = true;
+
+  // 4. 重置通知按鈕狀態，下次登入會重新申請
+  const notifyBtn = document.getElementById('notifyBtn');
+  if (notifyBtn) {
+    notifyBtn.textContent = '🔔 啟用推播通知';
+    notifyBtn.classList.remove('on');
+    notifyBtn.style.cursor = '';
+    notifyBtn.onclick = requestNotify;
+    const hint = notifyBtn.nextElementSibling;
+    if (hint && hint.classList.contains('ios-hint-card')) hint.remove();
+  }
+
+  document.getElementById('screen-main').style.display = 'none';
+  document.getElementById('screen-login').style.display = 'flex';
+  document.getElementById('nameInput').value = '';
+  checkLoginBtn();
+}
+
+// 自動登入（同一 session 內）
+(function autoLogin() {
+  const saved = sessionStorage.getItem('hk_staff');
+  if (saved) {
+    document.getElementById('nameInput').value = saved;
+    checkLoginBtn();
+    doLogin();
+  }
+})();
+
+// ── Firebase ───────────────────────────────────────────
+function loadRequests() {
+  db.ref('requests').on('value', (snap) => {
+    const data = snap.exists() ? snap.val() : {};
+    const prevIds = new Set(Object.keys(allRequests));
+    allRequests = data;
+
+    if (!isFirstLoad) {
+      // 新的待接單需求才通知
+      Object.entries(data).forEach(([id, req]) => {
+        if (!prevIds.has(id) && req.status === 'pending') {
+          sendNotification(req);
+        }
+      });
+    }
+
+    isFirstLoad = false;
+    renderRequests();
+    updateCounts();
+  });
+}
+
+// ── Render ────────────────────────────────────────────
+function renderRequests() {
+  const list = document.getElementById('requestsList');
+  if (!list) return;
+
+  let entries = Object.entries(allRequests).map(([id, r]) => ({ id, ...r }));
+
+  // 篩選
+  if (currentFilter === 'pending') {
+    entries = entries.filter(r => r.status === 'pending');
+  } else if (currentFilter === 'mine') {
+    entries = entries.filter(r => r.assignedTo === staffName && (r.status === 'assigned' || r.status === 'processing'));
+  } else if (currentFilter === 'done') {
+    entries = entries.filter(r => r.status === 'done' && r.assignedTo === staffName);
+  } else {
+    // all：排除其他人接走的已完成單
+    entries = entries.filter(r => (r.status !== 'done' && r.status !== 'cancelled') || r.assignedTo === staffName);
+    // assigned 狀態對所有人顯示
+  }
+
+  // 排序：pending > going > done，同狀態按時間新到舊
+  const order = { pending:0, processing:1, done:2 };
+  entries.sort((a,b) => (order[a.status]||0) - (order[b.status]||0) || b.createdAt - a.createdAt);
+
+  if (!entries.length) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">✅</div>
+        <div class="empty-text">目前沒有需要處理的需求</div>
+        <div class="empty-sub">新需求進來時將即時顯示</div>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = entries.map(req => renderCard(req)).join('');
+}
+
+const REQUEST_TYPE_UI = {
+  default: {
+    badge: '',
+    statusLabels: {
+      pending: '待接單',
+      assigned: '已接單・確認庫存中',
+      processing: '前往中',
+      done: '已送達',
+      cancelled: '❌ 已取消（缺貨）',
+    },
+    actions: {
+      accept: '🙋 我要接單',
+      confirm: {
+        zh: '✅ 接單成功，請確認庫存後按「前往」',
+        en: '✅ Assigned! Confirm stock then tap Go',
+      },
+      go: {
+        zh: '🚶 確認前往',
+        en: '🚶 Go Deliver',
+      },
+      processing: {
+        zh: '🚶 前往中…',
+        en: '🚶 On the Way…',
+      },
+      done: {
+        zh: '✅ 已送達',
+        en: '✅ Delivered',
+      },
+      otherAssigned: '接單',
+      otherProcessing: '前往中',
+      completed: '✅ 已完成',
+      cancelled: '❌ 已取消（缺貨）',
+      acceptToast: '✅ 接單成功！請確認庫存後按「確認前往」',
+      goToast: '🚶 已標記前往中，請盡快送達',
+      doneToast: '🎉 已標記為送達完成',
+    },
+  },
+  room_issue: {
+    badge: '🧹 客房問題',
+    statusLabels: {
+      pending: '待處理',
+      assigned: '已接單・確認狀況中',
+      processing: '前往處理中',
+      done: '已處理完成',
+      cancelled: '❌ 已取消',
+    },
+    actions: {
+      accept: '🧹 我要處理',
+      confirm: {
+        zh: '✅ 已接單，請先確認狀況後前往處理',
+        en: '✅ Assigned! Confirm the situation, then head over',
+      },
+      go: {
+        zh: '🚶 前往處理',
+        en: '🚶 Head to Handle',
+      },
+      processing: {
+        zh: '🚶 前往處理中…',
+        en: '🚶 Heading to Handle…',
+      },
+      done: {
+        zh: '✅ 已處理完成',
+        en: '✅ Mark Handled',
+      },
+      otherAssigned: '接單處理',
+      otherProcessing: '前往處理',
+      completed: '✅ 已處理完成',
+      cancelled: '❌ 已取消',
+      acceptToast: '✅ 已接單，請確認狀況後按「前往處理」',
+      goToast: '🚶 已標記前往處理中，請盡快完成',
+      doneToast: '🎉 已標記為處理完成',
+    },
+  },
+};
+
+function getRequestTypeUi(req) {
+  return REQUEST_TYPE_UI[req.type] || REQUEST_TYPE_UI.default;
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function renderCard(req) {
+  const isRoomIssue = req.type === 'room_issue';
+  const typeUi = getRequestTypeUi(req);
+  const prefix = getBuildingPrefix(req.building);
+  const roomLabel = escapeHtml(`${prefix}${req.room ?? ''}`);
+  const building = escapeHtml(req.buildingZh || '');
+  const time = new Date(req.createdAt).toLocaleString('zh-TW',
+    { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit', hour12:false });
+  const elapsed = getElapsed(req.createdAt);
+
+  const statusLabel = typeUi.statusLabels[req.status] || req.status;
+  const pillClass = {
+    pending: 'pill-pending',
+    assigned: 'pill-assigned',
+    processing: 'pill-going',
+    done: 'pill-done',
+    cancelled: 'pill-cancelled',
+  }[req.status] || '';
+
+  const items = (req.items||[]).map(i =>
+    `<span class="item-chip">${escapeHtml(i.nameZh||i.nameEn||'備品')}<span class="qty">×${escapeHtml(i.qty)}</span></span>`
+  ).join('');
+  const typeBadge = typeUi.badge
+    ? `<span class="item-chip">${typeUi.badge}</span>`
+    : '';
+
+  const remark = req.remark
+    ? `<div class="remark-box">💬 ${escapeHtml(req.remark)}</div>` : '';
+
+  // 指派資訊
+  let assignedInfo = '';
+  if (req.assignedTo) {
+    assignedInfo = `<div class="assigned-info">
+      🙋 由 <strong style="margin:0 4px">${escapeHtml(req.assignedTo)}</strong> 接單
+      ${req.assignedAt ? `・${new Date(req.assignedAt).toLocaleString('zh-TW',{hour:'2-digit',minute:'2-digit',hour12:false})}` : ''}
+    </div>`;
+  }
+
+  // 動作按鈕
+  let actions = '';
+  const isAssignedToMe = req.assignedTo === staffName;
+  const isAssignedToOther = req.assignedTo && req.assignedTo !== staffName;
+
+  if (req.status === 'pending') {
+    // 待接單
+    actions = `<button class="action-btn btn-accept" onclick="acceptOrder('${req.id}')">${typeUi.actions.accept}</button>`;
+
+  } else if (req.status === 'assigned' && isAssignedToMe) {
+    // 我已接單，確認庫存中 → 顯示「前往」和「缺貨」按鈕
+    const confirmMsg = hkLang === 'en' ? typeUi.actions.confirm.en : typeUi.actions.confirm.zh;
+    const goLabel = hkLang === 'en' ? typeUi.actions.go.en : typeUi.actions.go.zh;
+    actions = `
+      <div style="font-size:11px;color:rgba(167,139,250,0.7);margin-bottom:8px;padding:6px 10px;background:rgba(167,139,250,0.06);border-radius:8px;border:1px solid rgba(167,139,250,0.15)">
+        ${confirmMsg}
+      </div>
+      <button class="action-btn btn-going" onclick="goDeliver('${req.id}')">${goLabel}</button>`;
+    if (!isRoomIssue) {
+      const oosLabel = hkLang === 'en' ? '⚠ Out of Stock' : '⚠ 缺貨';
+      actions += `<button class="action-btn btn-oos" data-oos-request-id="${escapeHtml(req.id)}">${oosLabel}</button>`;
+    }
+
+  } else if (req.status === 'assigned' && isAssignedToOther) {
+    actions = `<button class="action-btn btn-secondary" disabled>已由 ${escapeHtml(req.assignedTo)} ${typeUi.actions.otherAssigned}</button>`;
+
+  } else if (req.status === 'processing' && isAssignedToMe) {
+    const processingLabel = hkLang === 'en' ? typeUi.actions.processing.en : typeUi.actions.processing.zh;
+    const arrivedLabel = hkLang === 'en' ? typeUi.actions.done.en : typeUi.actions.done.zh;
+    actions = `
+      <button class="action-btn btn-going" style="opacity:0.4;cursor:default" disabled>${processingLabel}</button>
+      <button class="action-btn btn-done" onclick="updateStatus('${req.id}','done')">${arrivedLabel}</button>`;
+    if (!isRoomIssue) {
+      const dndLabel = hkLang === 'en' ? '🔴 DND Reminder' : '🔴 提醒關燈';
+      actions += `<button class="action-btn btn-oos" style="background:rgba(217,107,107,0.12);border-color:rgba(217,107,107,0.3);color:#D96B6B" onclick="sendDndNotify('${req.id}','${req.lang||'zh'}')">${dndLabel}</button>`;
+    }
+
+  } else if (req.status === 'processing' && isAssignedToOther) {
+    actions = `<button class="action-btn btn-secondary" disabled>已由 ${escapeHtml(req.assignedTo)} ${typeUi.actions.otherProcessing}</button>`;
+
+  } else if (req.status === 'done') {
+    actions = `<button class="action-btn btn-secondary" style="opacity:0.5" disabled>${typeUi.actions.completed}</button>`;
+  } else if (req.status === 'cancelled') {
+    actions = `<button class="action-btn btn-secondary" style="opacity:0.5;color:#D96B6B;border-color:rgba(217,107,107,0.25)" disabled>${typeUi.actions.cancelled}</button>`;
+  }
+
+  const isMine = isAssignedToMe && (req.status === 'assigned' || req.status === 'processing');
+  const isDone = req.status === 'done' || req.status === 'cancelled';
+
+  // 剩餘時間進度條與倒數計算 (剩餘 15 分鐘限時 SLA)
+  let timerHtml = '';
+  let progressHtml = '';
+  
+  if (!isDone) {
+    const elapsedSeconds = Math.floor((Date.now() - req.createdAt) / 1000);
+    const limitSeconds = 15 * 60; // Standard 15 minutes limit S.L.A.
+    const remainingSeconds = limitSeconds - elapsedSeconds;
+    
+    let countdownText = '';
+    let badgeClass = 'badge-normal';
+    let progressColor = '#10B981'; // Emerald Green
+    let isUrgentClass = '';
+    let remainingPercent = 100;
+
+    if (remainingSeconds > 0) {
+      remainingPercent = (remainingSeconds / limitSeconds) * 100;
+      const mins = Math.floor(remainingSeconds / 60);
+      const secs = remainingSeconds % 60;
+      const padSecs = String(secs).padStart(2, '0');
+      
+      if (hkLang === 'en') {
+        countdownText = `⏳ ${mins}:${padSecs} left`;
+      } else {
+        countdownText = `⏳ 剩餘 ${mins}:${padSecs}`;
+      }
+      
+      if (remainingSeconds < 3 * 60) { // < 3 minutes: Urgent Red
+        badgeClass = 'badge-urgent';
+        progressColor = '#EF4444';
+        isUrgentClass = 'urgent';
+      } else if (remainingSeconds < 7 * 60) { // < 7 minutes: Warning Amber
+        badgeClass = 'badge-warning';
+        progressColor = '#F59E0B';
+      }
+    } else {
+      const overdueSecs = Math.abs(remainingSeconds);
+      const mins = Math.floor(overdueSecs / 60);
+      const secs = overdueSecs % 60;
+      const padSecs = String(secs).padStart(2, '0');
+      
+      if (hkLang === 'en') {
+        countdownText = `🚨 OVERDUE ${mins}:${padSecs}`;
+      } else {
+        countdownText = `🚨 逾時 ${mins}:${padSecs}`;
+      }
+      
+      badgeClass = 'badge-urgent';
+      progressColor = '#EF4444';
+      isUrgentClass = 'overdue';
+      remainingPercent = 0;
+    }
+    
+    timerHtml = `
+      <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px;">
+        <span class="countdown-badge ${badgeClass}">${countdownText}</span>
+      </div>
+    `;
+    
+    progressHtml = `
+      <div class="timer-bar-wrap">
+        <div class="timer-bar ${isUrgentClass}" style="width: ${remainingPercent}%; background-color: ${progressColor}; color: ${progressColor};"></div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="req-card ${isMine ? 'mine' : ''} ${isDone ? 'done-card' : ''}">
+      <div class="req-header">
+        <div class="room-tag">${roomLabel}</div>
+        <div class="req-info">
+          <div class="req-building">${building}</div>
+          <div class="req-time">📅 ${time}　⏱ ${elapsed}</div>
+          ${timerHtml}
+        </div>
+        <div class="status-pill ${pillClass}">${statusLabel}</div>
+      </div>
+      ${progressHtml}
+      <div class="req-body">
+        <div class="item-chips">${typeBadge}${items}</div>
+        ${remark}
+        ${req.status === 'cancelled' && req.oosItems ? `<div style="background:rgba(217,107,107,0.08);border:1px solid rgba(217,107,107,0.2);border-radius:8px;padding:8px 12px;font-size:12px;color:#D96B6B;margin-bottom:8px">⚠ 已通報缺貨：${escapeHtml(req.oosItems)}</div>` : ''}
+        ${assignedInfo}
+        <div class="req-actions">${actions}</div>
+      </div>
+    </div>`;
+}
+
+function getElapsed(ts) {
+  const diff = Date.now() - ts;
+  const m = Math.floor(diff/60000);
+  const h = Math.floor(m/60);
+  if (h > 0) return `${h} 小時前`;
+  if (m > 0) return `${m} 分鐘前`;
+  return '剛剛';
+}
+
+setInterval(() => { if (Object.keys(allRequests).length) renderRequests(); }, 1000);
+document.addEventListener('click', (event) => {
+  const oosTrigger = event.target.closest('.btn-oos[data-oos-request-id]');
+  if (oosTrigger) {
+    openOosModal(oosTrigger.dataset.oosRequestId || null);
+  }
+});
+
+// ── Actions ───────────────────────────────────────────
+// ── 語言切換 ─────────────────────────────────────────────
+let hkLang = 'zh';
+
+const hkI18n = {
+  zh: {
+    topTitle: '接單平台', topHotel: '煙波花蓮太魯閣 · 房務部',
+    tabAll: '全部', tabPending: '🟡 待接單', tabMine: '🟣 我的訂單', tabDone: '🟢 已完成',
+    logout: '登出', live: '即時同步中',
+    accept: '🙋 我要接單', delivered: '✅ 已送達', goDeliver: '🚶 確認前往',
+    oos: '⚠ 缺貨', dnd: '🔴 提醒關燈',
+    emptyText: '目前沒有需要處理的需求', emptySub: '新需求進來時將即時顯示',
+  },
+  en: {
+    topTitle: 'Order Platform', topHotel: 'Lakeshore Hotel · Housekeeping',
+    tabAll: 'All', tabPending: '🟡 Pending', tabMine: '🟣 My Orders', tabDone: '🟢 Done',
+    logout: 'Logout', live: 'Live Sync',
+    accept: '🙋 Accept', delivered: '✅ Delivered', goDeliver: '🚶 Go Deliver',
+    oos: '⚠ Out of Stock', dnd: '🔴 DND Reminder',
+    emptyText: 'No pending requests', emptySub: 'New requests will appear here',
+  },
+};
+
+function setHkLang(lang) {
+  hkLang = lang;
+  document.getElementById('hkLangZh').classList.toggle('active', lang === 'zh');
+  document.getElementById('hkLangEn').classList.toggle('active', lang === 'en');
+  applyHkI18n();
+  renderRequests();
+}
+
+function applyHkI18n() {
+  const t = hkI18n[hkLang];
+  document.querySelector('.topbar-hotel').textContent = t.topHotel;
+  document.querySelector('.topbar-title').textContent = t.topTitle;
+  document.getElementById('logoutBtnLabel').textContent = t.logout;
+  const tabs = [['tab-all', 'tabAll'], ['tab-pending', 'tabPending'], ['tab-mine', 'tabMine'], ['tab-done', 'tabDone']];
+  tabs.forEach(([id, key]) => {
+    const el = document.getElementById(id);
+    if (el) el.childNodes[0].textContent = t[key] + ' ';
+  });
+  document.querySelector('.live-bar span').textContent = t.live;
+}
+
+// ── DND 提醒 ─────────────────────────────────────────────
+function sendDndNotify(requestId, lang) {
+  const confirmMsg = hkLang === 'en'
+    ? 'Send "Turn off Do Not Disturb" notification to the guest?'
+    : '確定要發送「請關閉請勿打擾燈號」通知給客人嗎？';
+  if (!confirm(confirmMsg)) return;
+  db.ref('dnd_notify').push({
+    requestId, lang: lang || 'zh',
+    sentBy: 'housekeeping', sentByName: staffName,
+    sentAt: Date.now(), seenByGuest: false,
+  }).then(() => {
+    showToast(hkLang === 'en' ? '🔴 DND reminder sent to guest' : '🔴 已發送關燈提醒給客人');
+  });
+}
+
+function acceptOrder(id) {
+  const req = allRequests[id];
+  if (!req) return;
+  if (req.status !== 'pending') { showToast('此需求已被其他人接單'); return; }
+  const typeUi = getRequestTypeUi(req);
+
+  db.ref(`requests/${id}`).update({
+    status: 'assigned',
+    assignedTo: staffName,
+    assignedAt: Date.now(),
+    updatedAt: Date.now(),
+  });
+  showToast(typeUi.actions.acceptToast);
+}
+
+function goDeliver(id) {
+  const req = allRequests[id];
+  if (!req || req.status !== 'assigned') return;
+  if (req.assignedTo !== staffName) return;
+  const typeUi = getRequestTypeUi(req);
+  db.ref(`requests/${id}`).update({
+    status: 'processing',
+    goingAt: Date.now(),
+    updatedAt: Date.now(),
+  });
+  showToast(typeUi.actions.goToast);
+}
+
+function updateStatus(id, status) {
+  const req = allRequests[id];
+  if (!req) {
+    showToast('找不到此需求');
+    return;
+  }
+  if (status !== 'done') {
+    showToast('不支援的狀態更新');
+    return;
+  }
+  if (req.status !== 'processing') {
+    showToast('只有前往中的需求可標記完成');
+    return;
+  }
+  if (req.assignedTo !== staffName) {
+    showToast('只有目前處理人員可以完成此需求');
+    return;
+  }
+  const typeUi = getRequestTypeUi(req);
+  db.ref(`requests/${id}`).update({ status, updatedAt: Date.now() });
+  if (status === 'done') {
+    showToast(typeUi.actions.doneToast);
+  }
+}
+
+// ── Filter ────────────────────────────────────────────
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(`tab-${f}`).classList.add('active');
+  renderRequests();
+}
+
+function updateCounts() {
+  const reqs = Object.values(allRequests);
+  const pending = reqs.filter(r => r.status === 'pending').length;
+  const mine = reqs.filter(r => r.assignedTo === staffName && (r.status === 'assigned' || r.status === 'processing')).length;
+  const done = reqs.filter(r => r.assignedTo === staffName && r.status === 'done').length;
+  const all = reqs.filter(r => r.status !== 'done' || r.assignedTo === staffName).length;
+
+  document.getElementById('cnt-all').textContent = all;
+  document.getElementById('cnt-pending').textContent = pending;
+  document.getElementById('cnt-mine').textContent = mine;
+  document.getElementById('cnt-done').textContent = done;
+}
+
+// ── Sound & Notify ────────────────────────────────────
+function toggleSound() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){}
+  }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  soundEnabled = !soundEnabled;
+  const btn = document.getElementById('soundBtn');
+  btn.classList.toggle('on', soundEnabled);
+  btn.textContent = soundEnabled ? '🔔 提示音：開啟 ✓' : '🔔 提示音：關閉';
+  if (soundEnabled) playAlert();
+}
+
+function playAlert() {
+  if (!audioCtx) return;
+  try {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+    osc.frequency.setValueAtTime(660, audioCtx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+  } catch(e){}
+}
+
+function isIOS() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+
+function isAndroid() {
+  return /android/i.test(navigator.userAgent);
+}
+
+function removeOldHint(btn) {
+  const old = btn.nextElementSibling;
+  if (old && old.classList.contains('ios-hint-card')) old.remove();
+}
+
+function addHint(btn, html) {
+  removeOldHint(btn);
+  const div = document.createElement('div');
+  div.className = 'ios-hint-card';
+  div.innerHTML = html;
+  btn.parentNode.insertBefore(div, btn.nextSibling);
+}
+
+function setNotifyBtnEnabled(btn, label) {
+  btn.textContent = label;
+  btn.classList.add('on');
+  btn.style.cursor = 'default';
+  btn.onclick = null;
+}
+
+async function requestNotify() {
+  const btn = document.getElementById('notifyBtn');
+  const ua = navigator.userAgent;
+
+  // iOS：不支援 Notification API，只用 in-app banner
+  if (!('Notification' in window)) {
+    setNotifyBtnEnabled(btn, '📱 頁面通知已啟用 ✓');
+    addHint(btn, '📱 <strong>iOS 裝置說明</strong>：Safari/Chrome 均不支援系統推播，<br>收到新需求時頁面頂部會出現<strong>橘色橫幅</strong>並播放提示音。<br>✅ 若已將 APP 加入主畫面，休眠時請確保不完全關閉 APP。');
+    return;
+  }
+
+  // 申請 Notification 權限
+  let perm = Notification.permission;
+  if (perm === 'default') {
+    perm = await Notification.requestPermission();
+  }
+
+  removeOldHint(btn);
+
+  if (perm !== 'granted') {
+    setNotifyBtnEnabled(btn, '📱 頁面通知已啟用 ✓');
+    addHint(btn, '⚠️ 系統通知被封鎖，改用<strong>頁面橫幅通知</strong>。<br>如需休眠時收到通知，請在瀏覽器設定中允許通知後重新整理。');
+    return;
+  }
+
+  // 申請 FCM Token（支援休眠推播）
+  if (messaging) {
+    try {
+      // 先註冊 Service Worker
+      let swReg = null;
+      if ('serviceWorker' in navigator) {
+        try {
+          swReg = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
+          await navigator.serviceWorker.ready;
+        } catch(swErr) {
+          console.warn('SW register failed:', swErr);
+        }
+      }
+
+      const token = await messaging.getToken({
+        vapidKey: VAPID_KEY,
+        serviceWorkerRegistration: swReg || undefined,
+      });
+
+      if (token) {
+        // 儲存 token 到 Firebase，供後端發送推播用
+        if (staffName) {
+          db.ref(`fcm_tokens/${staffName.replace(/[^a-zA-Z0-9一-鿿]/g,'_')}`).set({
+            token,
+            updatedAt: Date.now(),
+            ua: navigator.userAgent.slice(0, 100),
+          });
+        }
+        setNotifyBtnEnabled(btn, '✅ 推播通知已啟用（含休眠）');
+        addHint(btn, '✅ <strong>FCM 推播已啟用</strong>：手機休眠時仍可收到通知。<br>Android 請確認：設定 → Chrome → 通知 → 已開啟。');
+        console.log('FCM Token:', token);
+      }
+    } catch(fcmErr) {
+      console.warn('FCM token failed:', fcmErr);
+      // FCM 失敗仍可用一般通知
+      setNotifyBtnEnabled(btn, '✅ 推播通知已啟用');
+      addHint(btn, '⚠️ 休眠推播設定失敗，改用一般通知。<br>請確認頁面保持開啟以接收通知。');
+    }
+  } else {
+    setNotifyBtnEnabled(btn, '✅ 推播通知已啟用');
+  }
+}
+
+let alertBannerTimer = null;
+
+function showAlertBanner(title, body) {
+  const banner = document.getElementById('alertBanner');
+  document.getElementById('alertTitle').textContent = title;
+  document.getElementById('alertBody').textContent = body;
+  banner.classList.add('show');
+  clearTimeout(alertBannerTimer);
+  // 手機上停留久一些（10秒），桌機5秒
+  const dur = /iphone|ipad|android/i.test(navigator.userAgent) ? 10000 : 6000;
+  alertBannerTimer = setTimeout(() => banner.classList.remove('show'), dur);
+}
+
+function closeAlertBanner() {
+  document.getElementById('alertBanner').classList.remove('show');
+  clearTimeout(alertBannerTimer);
+}
+
+function sendNotification(req) {
+  const prefix = getBuildingPrefix(req.building);
+  const roomLabel = `${prefix}${req.room}`;
+  const building = req.buildingZh || '';
+  const items = (req.items||[]).map(i => `${i.nameZh||i.nameEn}×${i.qty}`).join('、');
+
+  // ① In-app banner（所有裝置都支援，是最可靠的通知方式）
+  showAlertBanner(
+    `🛎 ${building} ${roomLabel} 號房　新服務需求`,
+    items
+  );
+
+  // ② 系統推播通知（支援 Notification API 的裝置：Android Chrome、桌機）
+  if (('Notification' in window) && Notification.permission === 'granted') {
+    try {
+      new Notification(`🛎 ${building} ${roomLabel} 號房 新需求`, {
+        body: items,
+        tag: 'hk-req-' + Date.now(),
+        requireInteraction: true,
+      });
+    } catch(e) {
+      try { new Notification(`🛎 ${roomLabel} 號房 新需求`, { body: items }); } catch(e2){}
+    }
+  }
+
+  // ③ 提示音
+  if (soundEnabled) playAlert();
+
+  // ④ 標題閃爍（桌機縮小時可見）
+  flashTitle(roomLabel);
+}
+
+let flashInterval = null;
+function flashTitle(roomLabel) {
+  clearInterval(flashInterval);
+  const original = '房務接單 | Lakeshore Hotel';
+  let toggle = true; let count = 0;
+  flashInterval = setInterval(() => {
+    document.title = toggle ? `🛎 ${roomLabel} 新需求！` : original;
+    toggle = !toggle; count++;
+    if (count >= 20) { clearInterval(flashInterval); document.title = original; }
+  }, 600);
+  document.addEventListener('visibilitychange', function stop() {
+    if (!document.hidden) {
+      clearInterval(flashInterval); document.title = original;
+      document.removeEventListener('visibilitychange', stop);
+    }
+  });
+}
+
+function showToast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+// ── 缺貨回報 ─────────────────────────────────────────────
+let oosRequestId = null;   // null = 獨立回報，有值 = 針對訂單
+let oosSelectedItems = []; // 已選缺貨備品 [{id, nameZh, icon}]
+
+function openOosModal(requestId) {
+  oosRequestId = requestId;
+  oosSelectedItems = [];
+  document.getElementById('oosRemark').value = '';
+  document.getElementById('oosSubmitBtn').disabled = true;
+
+  // 顯示訂單上下文
+  const ctxEl = document.getElementById('oosContext');
+  if (requestId && allRequests[requestId]) {
+    const req = allRequests[requestId];
+    const prefix = getBuildingPrefix(req.building);
+    const items = (req.items||[]).map(i => `${i.nameZh || i.nameEn || '備品'}×${i.qty}`).join('、');
+    ctxEl.style.display = 'block';
+    ctxEl.innerHTML = `📋 訂單：<strong>${escapeHtml(prefix)}${escapeHtml(req.room)} 號房</strong>　${escapeHtml(items)}`;
+  } else {
+    ctxEl.style.display = 'none';
+  }
+
+  // 載入備品清單
+  loadOosItems(requestId);
+  document.getElementById('oosOverlay').classList.add('show');
+}
+
+function closeOosModal() {
+  document.getElementById('oosOverlay').classList.remove('show');
+  oosRequestId = null;
+  oosSelectedItems = [];
+}
+
+function loadOosItems(requestId) {
+  const listEl = document.getElementById('oosItemList');
+  listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-dim);font-size:12px">載入中…</div>';
+
+  // 如果是針對訂單，直接用訂單備品
+  if (requestId && allRequests[requestId]) {
+    const req = allRequests[requestId];
+    renderOosItems((req.items||[]).map(i => ({
+      id: i.id || i.nameZh,
+      nameZh: i.nameZh || i.nameEn || '備品',
+      icon: '📦'
+    })));
+    return;
+  }
+
+  // 獨立回報：從 Firebase 讀取所有備品
+  db.ref('categories').once('value', (snap) => {
+    if (!snap.exists()) {
+      listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-dim);font-size:12px">尚無備品資料</div>';
+      return;
+    }
+    const cats = snap.val();
+    const items = [];
+    Object.values(cats).forEach(cat => {
+      if (cat.active === false) return;
+      Object.entries(cat.items || {}).forEach(([id, item]) => {
+        items.push({
+          id: `${cat.id || ''}_${id}`,
+          nameZh: item.nameZh || item.nameEn || '備品',
+          icon: item.icon || '📦',
+          catName: cat.nameZh || ''
+        });
+      });
+    });
+    renderOosItems(items);
+  });
+}
+
+function renderOosItems(items) {
+  const listEl = document.getElementById('oosItemList');
+  if (!items.length) {
+    listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-dim);font-size:12px">無備品資料</div>';
+    return;
+  }
+  listEl.innerHTML = '';
+  items.forEach(item => {
+    const rowId = `oosRow_${String(item.id).replace(/[^a-zA-Z0-9]/g,'_')}`;
+    const checkId = `oosCheck_${String(item.id).replace(/[^a-zA-Z0-9]/g,'_')}`;
+    const rowEl = document.createElement('div');
+    rowEl.className = 'oos-item-row';
+    rowEl.id = rowId;
+
+    const iconEl = document.createElement('span');
+    iconEl.className = 'oos-item-icon';
+    iconEl.textContent = item.icon || '📦';
+
+    const nameEl = document.createElement('span');
+    nameEl.className = 'oos-item-name';
+    nameEl.textContent = item.nameZh || '備品';
+    if (item.catName) {
+      const catEl = document.createElement('span');
+      catEl.style.fontSize = '10px';
+      catEl.style.opacity = '0.45';
+      catEl.textContent = `· ${item.catName}`;
+      nameEl.appendChild(document.createTextNode(' '));
+      nameEl.appendChild(catEl);
+    }
+
+    const checkEl = document.createElement('div');
+    checkEl.className = 'oos-item-check';
+    checkEl.id = checkId;
+
+    rowEl.appendChild(iconEl);
+    rowEl.appendChild(nameEl);
+    rowEl.appendChild(checkEl);
+    rowEl.addEventListener('click', () => {
+      toggleOosItem(item.id, item.nameZh || '備品', item.icon || '📦', rowEl);
+    });
+    listEl.appendChild(rowEl);
+  });
+}
+
+function toggleOosItem(itemId, nameZh, icon, rowEl) {
+  rowEl.classList.toggle('selected');
+  const checkEl = rowEl.querySelector('.oos-item-check');
+  const idx = oosSelectedItems.findIndex(i => i.id === itemId);
+  if (idx === -1) {
+    oosSelectedItems.push({ id: itemId, nameZh, icon });
+    checkEl.textContent = '✓';
+  } else {
+    oosSelectedItems.splice(idx, 1);
+    checkEl.textContent = '';
+  }
+  document.getElementById('oosSubmitBtn').disabled = oosSelectedItems.length === 0;
+  document.getElementById('oosSubmitBtn').textContent =
+    oosSelectedItems.length > 0 ? `回報 ${oosSelectedItems.length} 項缺貨` : '回報缺貨';
+}
+
+function submitOos() {
+  if (!oosSelectedItems.length) return;
+  const remark = document.getElementById('oosRemark').value.trim();
+
+  const oosData = {
+    items: oosSelectedItems,
+    reportedBy: staffName,
+    reportedAt: Date.now(),
+    remark: remark || null,
+    status: 'unread',
+    requestId: oosRequestId || null,
+    requestRoom: oosRequestId && allRequests[oosRequestId]
+      ? `${getBuildingPrefix(allRequests[oosRequestId].building)}${allRequests[oosRequestId].room}`
+      : null,
+    requestBuilding: oosRequestId && allRequests[oosRequestId]
+      ? (allRequests[oosRequestId].buildingZh || '')
+      : null,
+  };
+
+  db.ref('oos_reports').push(oosData)
+    .then(() => {
+      closeOosModal();
+      showToast('✅ 缺貨已回報給櫃檯');
+    })
+    .catch(err => {
+      alert('回報失敗：' + err.message);
+    });
+}
+
+// ── PWA 安裝 ────────────────────────────────────────────
+let deferredInstallPrompt = null;
+
+// 動態建立 manifest
+(function createManifest() {
+  const manifest = {
+    name: '房務接單 | Lakeshore Hotel',
+    short_name: '房務接單',
+    description: '煙波花蓮太魯閣 房務部接單平台',
+    start_url: window.location.href,
+    display: 'standalone',
+    background_color: '#111008',
+    theme_color: '#111008',
+    orientation: 'portrait',
+    icons: [
+      {
+        src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='32' fill='%23111008'/><text y='.85em' font-size='140' x='50%' text-anchor='middle'>🛎</text></svg>",
+        sizes: '192x192',
+        type: 'image/svg+xml',
+        purpose: 'any maskable'
+      },
+      {
+        src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%23111008'/><text y='.85em' font-size='380' x='50%' text-anchor='middle'>🛎</text></svg>",
+        sizes: '512x512',
+        type: 'image/svg+xml',
+        purpose: 'any maskable'
+      }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  document.getElementById('pwaManifest').setAttribute('href', url);
+})();
+
+// 偵測 Android Chrome 的安裝提示事件
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  // 如果尚未安裝，顯示安裝引導
+  if (!window.matchMedia('(display-mode: standalone)').matches) {
+    setTimeout(() => showInstallBanner('android'), 2000);
+  }
+});
+
+// 偵測是否已是 standalone 模式（已安裝）
+window.addEventListener('appinstalled', () => {
+  dismissInstall();
+  showToast('✅ 已成功安裝到桌面！');
+});
+
+function showInstallBanner(platform) {
+  const banner = document.getElementById('installBanner');
+  const iosSteps = document.getElementById('iosInstallSteps');
+  const actionBtn = document.getElementById('installActionBtn');
+
+  if (platform === 'ios') {
+    actionBtn.textContent = '📌 查看安裝步驟';
+    actionBtn.onclick = function() {
+      iosSteps.classList.toggle('show');
+      this.textContent = iosSteps.classList.contains('show') ? '▲ 收起' : '📌 查看安裝步驟';
+    };
+  }
+
+  banner.classList.add('show');
+}
+
+function doInstall() {
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.then((result) => {
+      if (result.outcome === 'accepted') showToast('✅ 正在安裝到桌面…');
+      deferredInstallPrompt = null;
+      dismissInstall();
+    });
+  }
+}
+
+function dismissInstall() {
+  document.getElementById('installBanner').classList.remove('show');
+  sessionStorage.setItem('installDismissed', '1');
+}
+
+// 登入後檢查是否要顯示安裝引導
+function checkInstallPrompt() {
+  if (window.matchMedia('(display-mode: standalone)').matches) return; // 已安裝
+  if (sessionStorage.getItem('installDismissed')) return; // 本次已關閉
+
+  const ua = navigator.userAgent;
+  const isIOSDevice = /iphone|ipad|ipod/i.test(ua);
+  const isAndroidDevice = /android/i.test(ua);
+
+  if (isIOSDevice && !window.navigator.standalone) {
+    // iOS：尚未加入主畫面，顯示 iOS 步驟說明
+    setTimeout(() => showInstallBanner('ios'), 2500);
+  }
+  // Android 的引導由 beforeinstallprompt 事件觸發
+}
+</script>
+</body>
+</html>

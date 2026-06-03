@@ -1,0 +1,3410 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- PWA / FCM -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1A1510">
+<link rel="manifest" id="guestManifest">
+<title>客房服務 | Lakeshore Hotel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Noto+Sans+TC:wght@300;400;500&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A96E;
+    --gold-light: #E8D5A3;
+    --gold-dark: #A07840;
+    --deep: #1A1510;
+    --warm: #2C2218;
+    --surface: #F9F5EE;
+    --surface2: #F2EBE0;
+    --text: #3A2E22;
+    --text-light: #7A6A58;
+    --success: #4A7C59;
+    --radius: 16px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--surface);
+    color: var(--text);
+    font-family: 'Noto Sans TC', 'Noto Sans JP', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--deep);
+    padding: 18px 20px 14px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+  }
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+
+  .hotel-name {
+    font-family: 'Noto Sans TC', sans-serif;
+    color: var(--gold);
+    font-size: 17px;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    line-height: 1.3;
+  }
+
+  .hotel-name-zh {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 11px;
+    font-weight: 300;
+    color: var(--gold-light);
+    letter-spacing: 0.15em;
+    display: block;
+    margin-top: 2px;
+  }
+
+  .lang-switcher { display: flex; gap: 4px; }
+
+  .lang-btn {
+    background: transparent;
+    border: 1px solid rgba(201,169,110,0.3);
+    color: var(--gold-light);
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+
+  .lang-btn.active {
+    background: var(--gold);
+    color: var(--deep);
+    border-color: var(--gold);
+    font-weight: 500;
+  }
+
+  .room-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(201,169,110,0.15);
+    border: 1px solid rgba(201,169,110,0.3);
+    border-radius: 20px;
+    padding: 5px 12px;
+    color: var(--gold);
+    font-size: 12px;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .room-badge:active { background: rgba(201,169,110,0.25); }
+  .room-badge .edit-hint { font-size: 10px; opacity: 0.6; margin-left: 2px; }
+
+  /* ── SCREEN SYSTEM ── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── WELCOME SCREEN ── */
+  #screen-welcome {
+    min-height: 100vh;
+    background: var(--deep);
+    display: none;
+    flex-direction: column;
+  }
+
+  #screen-welcome.active {
+    display: flex;
+  }
+
+  .welcome-hero {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 28px 20px;
+    text-align: center;
+  }
+
+  .welcome-logo {
+    font-family: 'Noto Sans TC', sans-serif;
+    color: var(--gold);
+    font-size: 18px;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    line-height: 1.5;
+    margin-bottom: 4px;
+  }
+
+  .welcome-logo-zh {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    color: rgba(201,169,110,0.55);
+    letter-spacing: 0.18em;
+    margin-bottom: 24px;
+    display: block;
+  }
+
+  /* Service Heading */
+  .welcome-service-heading {
+    text-align: center;
+    margin-bottom: 28px;
+    width: 100%;
+    max-width: 360px;
+  }
+
+  .welcome-service-title {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 52px;
+    font-weight: 300;
+    color: #fff;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .welcome-service-en {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 14px;
+    font-weight: 300;
+    color: rgba(201,169,110,0.7);
+    letter-spacing: 0.25em;
+    margin-bottom: 16px;
+  }
+
+  .welcome-service-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+
+  .welcome-service-divider span:not(.diamond) {
+    flex: 1;
+    max-width: 60px;
+    height: 1px;
+    background: rgba(201,169,110,0.3);
+    display: block;
+  }
+
+  .welcome-service-divider .diamond {
+    color: var(--gold);
+    font-size: 8px;
+    opacity: 0.7;
+  }
+
+  .welcome-service-desc {
+    font-size: 13px;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.06em;
+    line-height: 1.6;
+  }
+
+  .welcome-title {
+    font-size: 14px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.1em;
+    margin-bottom: 24px;
+  }
+
+  /* Building Cards */
+  .building-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 360px;
+  }
+
+  .building-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(201,169,110,0.2);
+    border-radius: 14px;
+    padding: 18px 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .building-card:active {
+    background: rgba(201,169,110,0.12);
+    border-color: var(--gold);
+    transform: scale(0.98);
+  }
+
+  .building-card.selected {
+    background: rgba(201,169,110,0.12);
+    border-color: var(--gold);
+  }
+
+  .building-icon {
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+
+  .building-info { flex: 1; }
+
+  .building-name-zh {
+    font-size: 15px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 3px;
+  }
+
+  .building-name-en {
+    font-size: 11px;
+    color: rgba(201,169,110,0.7);
+    letter-spacing: 0.05em;
+  }
+
+  .building-arrow {
+    color: rgba(201,169,110,0.4);
+    font-size: 16px;
+  }
+
+  /* ── ROOM INPUT SCREEN ── */
+  #screen-room {
+    min-height: 100vh;
+    background: var(--deep);
+    display: none;
+    flex-direction: column;
+  }
+
+  #screen-room.active { display: flex; }
+
+  .room-header {
+    padding: 20px 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .back-btn-dark {
+    background: rgba(255,255,255,0.08);
+    border: none;
+    color: rgba(255,255,255,0.6);
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+
+  .back-btn-dark:active { background: rgba(255,255,255,0.15); }
+
+  .room-header-info { flex: 1; }
+
+  .room-header-building {
+    font-size: 12px;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+    margin-bottom: 2px;
+  }
+
+  .room-header-title {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 20px;
+    color: rgba(255,255,255,0.85);
+    font-weight: 400;
+  }
+
+  .room-display {
+    text-align: center;
+    padding: 32px 20px 16px;
+  }
+
+  .room-number-display {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 64px;
+    color: var(--gold);
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .room-number-display.empty {
+    color: rgba(201,169,110,0.2);
+  }
+
+  .room-number-display .cursor {
+    width: 3px;
+    height: 52px;
+    background: var(--gold);
+    margin-left: 4px;
+    animation: blink 1s infinite;
+    border-radius: 2px;
+  }
+
+  @keyframes blink { 0%,50%{opacity:1} 51%,100%{opacity:0} }
+
+  .room-hint {
+    font-size: 12px;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 0.05em;
+    margin-top: 4px;
+  }
+
+  /* Numpad */
+  .numpad {
+    padding: 8px 20px 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    max-width: 340px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .num-btn {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 18px 0;
+    font-size: 22px;
+    font-family: 'Noto Sans TC', sans-serif;
+    color: rgba(255,255,255,0.85);
+    cursor: pointer;
+    transition: all 0.12s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+  }
+
+  .num-btn .sub {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 9px;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 0.05em;
+  }
+
+  .num-btn:active { background: rgba(201,169,110,0.15); border-color: rgba(201,169,110,0.3); transform: scale(0.95); }
+
+  .num-btn.del { font-size: 20px; }
+  .num-btn.zero { font-size: 22px; }
+
+  .num-btn.confirm-btn {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--deep);
+    font-size: 14px;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+
+  .num-btn.confirm-btn:active { background: var(--gold-dark); }
+  .num-btn.confirm-btn:disabled { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.2); border-color: transparent; }
+
+  /* ── MAIN APP SCREEN (body) ── */
+  #screen-main { padding-bottom: 120px; }
+
+  /* GREETING */
+  .greeting {
+    padding: 20px 20px 6px;
+  }
+
+  .greeting-building {
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 0.12em;
+    margin-bottom: 4px;
+  }
+
+  .greeting-title {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 24px;
+    font-weight: 300;
+    color: var(--text);
+    letter-spacing: 0.02em;
+    margin-bottom: 2px;
+  }
+
+  .greeting-sub {
+    font-size: 12px;
+    color: var(--text-light);
+    letter-spacing: 0.03em;
+  }
+
+  /* DIVIDER */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px 6px;
+  }
+
+  .divider-line { flex: 1; height: 1px; background: rgba(201,169,110,0.25); }
+  .divider-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--gold); opacity: 0.6; }
+
+  .category-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    font-weight: 500;
+    padding: 0 20px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+
+  /* ITEMS GRID */
+  .items-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 0 20px;
+    margin-bottom: 6px;
+  }
+
+  .item-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 14px 12px;
+    border: 1.5px solid transparent;
+    transition: all 0.2s;
+    position: relative;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+  }
+
+  .item-card.selected {
+    border-color: var(--gold);
+    background: #FEFBF4;
+    box-shadow: 0 2px 16px rgba(201,169,110,0.2);
+  }
+
+  .item-icon { font-size: 28px; margin-bottom: 6px; display: block; }
+
+  .item-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 2px;
+    line-height: 1.3;
+  }
+
+  .item-name-sub {
+    font-size: 10px;
+    color: var(--text-light);
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .item-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+
+  .badge-deposit {
+    font-size: 10px;
+    background: rgba(232,169,74,0.12);
+    border: 1px solid rgba(232,169,74,0.35);
+    color: #C8882A;
+    border-radius: 8px;
+    padding: 2px 7px;
+    line-height: 1.4;
+  }
+
+  .badge-tag {
+    font-size: 10px;
+    background: rgba(74,124,89,0.1);
+    border: 1px solid rgba(74,124,89,0.3);
+    color: #3A7A52;
+    border-radius: 8px;
+    padding: 2px 7px;
+    line-height: 1.4;
+  }
+
+  .qty-control {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 2px;
+  }
+
+  .qty-btn {
+    width: 28px; height: 28px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--text-light);
+    border-radius: 6px;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .qty-btn:active { background: rgba(0,0,0,0.08); transform: scale(0.9); }
+  .qty-btn.plus.active { background: var(--gold); color: white; }
+
+  .qty-num {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    min-width: 20px;
+    text-align: center;
+  }
+
+  .selected-dot {
+    position: absolute;
+    top: 10px; right: 10px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .item-card.selected .selected-dot { opacity: 1; }
+
+  /* REMARK */
+  .remark-section { padding: 0 20px; margin-top: 8px; }
+
+  .remark-label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--text-light);
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .remark-input {
+    width: 100%;
+    background: white;
+    border: 1.5px solid rgba(201,169,110,0.25);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--text);
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+  }
+
+  .remark-input:focus { border-color: var(--gold); }
+  .remark-input::placeholder { color: var(--text-light); opacity: 0.6; }
+
+  /* SUBMIT BAR */
+  .submit-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: white;
+    padding: 10px 20px 28px;
+    box-shadow: 0 -4px 30px rgba(0,0,0,0.1);
+    z-index: 100;
+  }
+
+  .submit-summary {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-bottom: 8px;
+    text-align: center;
+    min-height: 16px;
+  }
+
+  .submit-btn {
+    width: 100%;
+    background: var(--gold);
+    color: var(--deep);
+    border: none;
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 15px;
+    font-family: inherit;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .submit-btn:active { transform: scale(0.98); }
+  .submit-btn:disabled { background: #D0C8BB; cursor: not-allowed; transform: none; }
+
+  /* ── SUCCESS / PROGRESS SCREEN ── */
+  #screen-progress {
+    min-height: 100vh;
+    background: var(--deep);
+    display: none;
+    flex-direction: column;
+    padding: 0 0 40px;
+  }
+
+  #screen-progress.active { display: flex; }
+
+  .progress-header {
+    padding: 24px 20px 20px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .progress-check {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: rgba(74,124,89,0.15);
+    border: 2px solid #4A7C59;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin: 0 auto 16px;
+    animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  @keyframes popIn { from { opacity:0; transform:scale(0.5); } to { opacity:1; transform:scale(1); } }
+
+  .progress-sent-title {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 24px;
+    color: var(--gold);
+    font-weight: 400;
+    margin-bottom: 4px;
+  }
+
+  .progress-sent-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.05em;
+  }
+
+  /* Ref Box */
+  .ref-box {
+    margin: 16px 20px 0;
+    background: rgba(201,169,110,0.08);
+    border: 1px solid rgba(201,169,110,0.2);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .ref-label { font-size: 11px; color: rgba(255,255,255,0.35); letter-spacing: 0.1em; margin-bottom: 4px; }
+  .ref-number {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 26px;
+    color: var(--gold);
+    letter-spacing: 0.15em;
+  }
+
+  .copy-btn {
+    background: rgba(201,169,110,0.12);
+    border: 1px solid rgba(201,169,110,0.25);
+    color: var(--gold);
+    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    letter-spacing: 0.05em;
+  }
+
+  .copy-btn:active { background: rgba(201,169,110,0.25); }
+
+  /* Status Timeline */
+  .status-section {
+    margin: 20px 20px 0;
+  }
+
+  .status-section-title {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 14px;
+    text-transform: uppercase;
+  }
+
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .timeline-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding-bottom: 20px;
+    position: relative;
+  }
+
+  .timeline-item:last-child { padding-bottom: 0; }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 32px;
+    bottom: 0;
+    width: 2px;
+    background: rgba(255,255,255,0.06);
+  }
+
+  .timeline-item:last-child::before { display: none; }
+
+  .timeline-dot {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .timeline-dot.done {
+    background: rgba(74,124,89,0.2);
+    border: 2px solid #4A7C59;
+  }
+
+  .timeline-dot.active {
+    background: rgba(91,155,213,0.2);
+    border: 2px solid #5B9BD5;
+    animation: pulseDot 2s infinite;
+  }
+
+  .timeline-dot.waiting {
+    background: rgba(255,255,255,0.04);
+    border: 2px solid rgba(255,255,255,0.1);
+  }
+
+  @keyframes pulseDot {
+    0%,100% { box-shadow: 0 0 0 0 rgba(91,155,213,0.3); }
+    50% { box-shadow: 0 0 0 8px rgba(91,155,213,0); }
+  }
+
+  .timeline-content { flex: 1; padding-top: 4px; }
+
+  .timeline-title {
+    font-size: 14px;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 2px;
+    font-weight: 500;
+  }
+
+  .timeline-title.dim { color: rgba(255,255,255,0.25); font-weight: 400; }
+
+  .timeline-sub {
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 0.03em;
+  }
+
+  /* Items Summary */
+  .items-summary {
+    margin: 16px 20px 0;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+
+  .items-summary-title {
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+
+  .summary-chip-list { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .summary-chip {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+  }
+
+  .summary-chip .qty-tag {
+    color: var(--gold);
+    margin-left: 2px;
+  }
+
+  /* Action Buttons */
+  .progress-actions {
+    margin: 24px 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* REPAIR ENTRY BUTTON */
+  .repair-entry-btn {
+    width: 100%;
+    background: rgba(217,107,107,0.1);
+    border: 1.5px solid rgba(217,107,107,0.3);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .repair-entry-btn:active { background: rgba(217,107,107,0.18); transform: scale(0.98); }
+  .repair-entry-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #D96B6B;
+    margin-bottom: 2px;
+  }
+  .repair-entry-sub {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.03em;
+  }
+
+  /* REPAIR SCREEN */
+  #screen-repair,
+  #screen-room-issue {
+    min-height: 100vh;
+    background: var(--deep);
+    display: none;
+    flex-direction: column;
+    padding-bottom: 100px;
+  }
+  #screen-repair.active,
+  #screen-room-issue.active { display: flex; }
+
+  .repair-header {
+    background: var(--deep);
+    padding: 18px 20px 14px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+    border-bottom: 1px solid rgba(217,107,107,0.2);
+  }
+  .repair-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .repair-back-btn {
+    background: rgba(255,255,255,0.08);
+    border: none;
+    color: rgba(255,255,255,0.6);
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .repair-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #D96B6B;
+    flex: 1;
+    margin-left: 10px;
+  }
+  .repair-room-badge {
+    background: rgba(217,107,107,0.12);
+    border: 1px solid rgba(217,107,107,0.25);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 12px;
+    color: #D96B6B;
+  }
+
+  .repair-category-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: #D96B6B;
+    font-weight: 500;
+    padding: 0 20px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+
+  .repair-item-card {
+    background: rgba(255,255,255,0.04);
+    border-radius: 12px;
+    padding: 14px 14px;
+    border: 1.5px solid transparent;
+    transition: all 0.2s;
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .repair-item-card.selected {
+    border-color: #D96B6B;
+    background: rgba(217,107,107,0.08);
+  }
+  .repair-item-icon { font-size: 22px; flex-shrink: 0; }
+  .repair-item-name { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.85); flex: 1; }
+  .repair-item-check {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    transition: all 0.15s;
+  }
+  .repair-item-card.selected .repair-item-check {
+    background: #D96B6B;
+    border-color: #D96B6B;
+    color: white;
+  }
+  .repair-items-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 20px;
+    margin-bottom: 6px;
+  }
+
+  .repair-submit-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(26,21,16,0.95);
+    padding: 10px 20px 28px;
+    box-shadow: 0 -4px 30px rgba(0,0,0,0.3);
+    z-index: 100;
+    border-top: 1px solid rgba(217,107,107,0.2);
+  }
+  .repair-submit-btn {
+    width: 100%;
+    background: #D96B6B;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 15px;
+    font-family: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .repair-submit-btn:disabled { background: rgba(217,107,107,0.3); cursor: not-allowed; }
+  .repair-submit-btn:active { opacity: 0.85; transform: scale(0.98); }
+
+  #screen-room-issue .repair-header {
+    border-bottom: 1px solid rgba(201,169,110,0.2);
+  }
+
+  #screen-room-issue .repair-title {
+    color: var(--gold);
+  }
+
+  #screen-room-issue .repair-room-badge {
+    background: rgba(201,169,110,0.12);
+    border-color: rgba(201,169,110,0.28);
+    color: var(--gold);
+  }
+
+  #screen-room-issue .repair-category-label {
+    color: var(--gold);
+  }
+
+  #screen-room-issue .repair-item-card.selected {
+    border-color: var(--gold);
+    background: rgba(201,169,110,0.12);
+  }
+
+  #screen-room-issue .repair-item-card.selected .repair-item-check {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--deep);
+  }
+
+  #screen-room-issue .repair-submit-bar {
+    border-top: 1px solid rgba(201,169,110,0.2);
+  }
+
+  #screen-room-issue .repair-submit-btn {
+    background: var(--gold);
+    color: var(--deep);
+  }
+
+  #screen-room-issue .repair-submit-btn:disabled {
+    background: rgba(201,169,110,0.3);
+    color: rgba(26,21,16,0.45);
+  }
+
+  .action-btn-gold {
+    width: 100%;
+    background: var(--gold);
+    color: var(--deep);
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-size: 14px;
+    font-family: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.15s;
+  }
+
+  .action-btn-gold:active { opacity: 0.85; transform: scale(0.98); }
+
+  .action-btn-outline {
+    width: 100%;
+    background: transparent;
+    color: rgba(255,255,255,0.4);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    padding: 14px;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.15s;
+  }
+
+  .action-btn-outline:active { background: rgba(255,255,255,0.05); }
+
+  /* ── LOOKUP SCREEN ── */
+  #screen-lookup {
+    min-height: 100vh;
+    background: var(--deep);
+    display: none;
+    flex-direction: column;
+    padding: 24px 20px;
+  }
+
+  #screen-lookup.active { display: flex; }
+
+  .lookup-title {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 24px;
+    color: var(--gold);
+    font-weight: 400;
+    margin-bottom: 6px;
+    margin-top: 8px;
+  }
+
+  .lookup-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 24px;
+    letter-spacing: 0.03em;
+  }
+
+  .lookup-input-wrap {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .lookup-input {
+    flex: 1;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 18px;
+    font-family: 'Noto Sans TC', sans-serif;
+    color: var(--gold);
+    letter-spacing: 0.2em;
+    outline: none;
+    text-transform: uppercase;
+    transition: border-color 0.2s;
+  }
+
+  .lookup-input:focus { border-color: rgba(201,169,110,0.4); }
+  .lookup-input::placeholder { color: rgba(255,255,255,0.15); font-size: 14px; letter-spacing: 0.05em; }
+
+  .lookup-btn {
+    background: var(--gold);
+    border: none;
+    color: var(--deep);
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: opacity 0.15s;
+  }
+
+  .lookup-btn:active { opacity: 0.8; }
+
+  .lookup-result { }
+
+  .lookup-empty {
+    text-align: center;
+    padding: 40px 0;
+    color: rgba(255,255,255,0.2);
+    font-size: 13px;
+  }
+
+  /* NOTICE MODAL */
+  .notice-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10,8,5,0.85);
+    z-index: 160;
+    align-items: flex-end;
+    justify-content: center;
+    backdrop-filter: blur(6px);
+  }
+  .notice-overlay.show { display: flex; animation: noticeBgIn 0.3s ease; }
+  @keyframes noticeBgIn { from { opacity:0; } to { opacity:1; } }
+
+  .notice-sheet {
+    background: #1E1912;
+    border-radius: 24px 24px 0 0;
+    padding: 28px 24px 40px;
+    width: 100%;
+    max-width: 520px;
+    border-top: 1px solid rgba(201,169,110,0.2);
+    animation: sheetUp 0.35s cubic-bezier(0.32,0.72,0,1);
+  }
+  @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+  .notice-handle {
+    width: 36px; height: 4px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 2px;
+    margin: 0 auto 20px;
+  }
+
+  .notice-icon {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .notice-title {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 22px;
+    color: var(--gold);
+    text-align: center;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+    font-weight: 400;
+  }
+
+  .notice-subtitle {
+    font-size: 12px;
+    color: rgba(255,255,255,0.3);
+    text-align: center;
+    letter-spacing: 0.08em;
+    margin-bottom: 22px;
+  }
+
+  .notice-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .notice-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 14px 14px;
+  }
+
+  .notice-item-num {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: rgba(201,169,110,0.15);
+    border: 1px solid rgba(201,169,110,0.3);
+    color: var(--gold);
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .notice-item-text {
+    font-size: 14px;
+    color: rgba(255,255,255,0.82);
+    line-height: 1.65;
+    letter-spacing: 0.02em;
+  }
+
+  .notice-item-text strong {
+    color: #FFCA6E;
+  }
+
+  .notice-confirm-btn {
+    width: 100%;
+    background: var(--gold);
+    color: var(--deep);
+    border: none;
+    border-radius: 14px;
+    padding: 17px;
+    font-size: 16px;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.15s;
+  }
+  .notice-confirm-btn:active { opacity: 0.85; transform: scale(0.98); }
+
+  .notice-cancel-btn {
+    width: 100%;
+    background: transparent;
+    color: rgba(255,255,255,0.3);
+    border: none;
+    padding: 14px;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+    margin-top: 4px;
+  }
+
+  /* DND ALERT */
+  .dnd-banner {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 999;
+    background: linear-gradient(135deg, #D96B6B, #B84444);
+    color: white;
+    padding: 14px 16px max(14px, env(safe-area-inset-top));
+    animation: slideDown 0.35s cubic-bezier(0.32,0.72,0,1);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+  .dnd-banner.show { display: block; }
+  @keyframes slideDown { from{transform:translateY(-100%)} to{transform:translateY(0)} }
+  .dnd-banner-inner { display:flex; align-items:center; gap:12px; max-width:520px; margin:0 auto; }
+  .dnd-banner-icon { font-size:28px; flex-shrink:0; animation: shake 0.5s ease 0.1s; }
+  @keyframes shake { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-12deg)} 75%{transform:rotate(12deg)} }
+  .dnd-banner-text { flex:1; }
+  .dnd-banner-title { font-size:15px; font-weight:700; margin-bottom:3px; }
+  .dnd-banner-body { font-size:12px; opacity:0.85; line-height:1.4; }
+  .dnd-banner-close { background:rgba(255,255,255,0.2); border:none; color:white; width:30px; height:30px; border-radius:50%; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+  /* LOADING */
+  .loading-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,21,16,0.7);
+    z-index: 150;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .loading-overlay.show { display: flex; }
+
+  .spinner {
+    width: 40px; height: 40px;
+    border: 2px solid rgba(201,169,110,0.2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty-categories {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-light);
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     SCREEN 1: 館別選擇
+══════════════════════════════════════ -->
+<div class="screen active" id="screen-welcome">
+  <div class="welcome-hero">
+    <div class="welcome-logo" onclick="handleStaffClick()" style="cursor: pointer;">
+      煙波大飯店花蓮太魯閣
+      <span class="welcome-logo-zh">Lakeshore Hotel Taroko Hualien</span>
+    </div>
+
+    <!-- 主抬頭 -->
+    <div class="welcome-service-heading">
+      <div class="welcome-service-title" data-i18n="serviceHeading">客房服務</div>
+      <div class="welcome-service-en" data-i18n="serviceHeadingEn">In-Room Service Request</div>
+      <div class="welcome-service-divider">
+        <span></span><span class="diamond">◆</span><span></span>
+      </div>
+      <div class="welcome-service-desc" data-i18n="serviceDesc">您有任何備品需求，我們隨時為您服務</div>
+    </div>
+
+    <div class="welcome-title" data-i18n="welcomeTitle">請選擇您的館別</div>
+    <div class="building-cards">
+      <div class="building-card" onclick="selectBuilding('tranquil')">
+        <div class="building-icon">🌊</div>
+        <div class="building-info">
+          <div class="building-name-zh">沁海館</div>
+          <div class="building-name-en">Tranquil Building</div>
+        </div>
+        <div class="building-arrow">›</div>
+      </div>
+      <div class="building-card" onclick="selectBuilding('moment')">
+        <div class="building-icon">🌸</div>
+        <div class="building-info">
+          <div class="building-name-zh">煙波花蓮花時間</div>
+          <div class="building-name-en">The Moment Hotel</div>
+        </div>
+        <div class="building-arrow">›</div>
+      </div>
+      <div class="building-card" onclick="selectBuilding('serenity')">
+        <div class="building-icon">⛰️</div>
+        <div class="building-info">
+          <div class="building-name-zh">山闊館</div>
+          <div class="building-name-en">Serenity Building</div>
+        </div>
+        <div class="building-arrow">›</div>
+      </div>
+    </div>
+
+    <div style="margin-top:28px;width:100%;max-width:360px;display:flex;flex-direction:column;gap:10px">
+      <button class="action-btn-outline" style="font-size:13px;padding:12px" onclick="showScreen('screen-lookup')">
+        🔍 <span data-i18n="lookupBtn">查詢服務進度</span>
+      </button>
+      <a id="staff-home-btn-main" href="/" class="staff-only-el" style="display:none !important;text-align:center;font-size:12px;color:var(--gold);border:1px solid rgba(201,169,110,0.3);background:rgba(201,169,110,0.08);padding:10.5px;border-radius:10px;text-decoration:none;font-weight:500;cursor:pointer;letter-spacing:0.05em;align-items:center;justify-content:center;gap:6px;transition:all 0.2s;" onmouseover="this.style.background='rgba(201,169,110,0.18)'" onmouseout="this.style.background='rgba(201,169,110,0.08)'">
+        🧭 返回湖畔主控 Portal (Home)
+      </a>
+    </div>
+
+    <!-- 語言切換 -->
+    <div style="display:flex;gap:8px;margin-top:20px">
+      <button class="lang-btn active" onclick="setLang('zh')">中</button>
+      <button class="lang-btn" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" onclick="setLang('ja')">日</button>
+      <button class="lang-btn" onclick="setLang('ko')">韓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 2: 房號輸入
+══════════════════════════════════════ -->
+<div class="screen" id="screen-room">
+  <div class="room-header">
+    <button class="back-btn-dark" onclick="showScreen('screen-welcome')">‹</button>
+    <div class="room-header-info">
+      <div class="room-header-building" id="roomHeaderBuilding">—</div>
+      <div class="room-header-title" data-i18n="enterRoom">請輸入房號</div>
+    </div>
+  </div>
+
+  <div class="room-display">
+    <div class="room-number-display empty" id="roomNumberDisplay">
+      <span class="cursor"></span>
+    </div>
+    <div class="room-hint" data-i18n="roomHint">輸入您的房間號碼</div>
+  </div>
+
+  <div class="numpad">
+    <button class="num-btn" onclick="numInput('1')">1</button>
+    <button class="num-btn" onclick="numInput('2')">2<span class="sub">ABC</span></button>
+    <button class="num-btn" onclick="numInput('3')">3<span class="sub">DEF</span></button>
+    <button class="num-btn" onclick="numInput('4')">4<span class="sub">GHI</span></button>
+    <button class="num-btn" onclick="numInput('5')">5<span class="sub">JKL</span></button>
+    <button class="num-btn" onclick="numInput('6')">6<span class="sub">MNO</span></button>
+    <button class="num-btn" onclick="numInput('7')">7<span class="sub">PQRS</span></button>
+    <button class="num-btn" onclick="numInput('8')">8<span class="sub">TUV</span></button>
+    <button class="num-btn" onclick="numInput('9')">9<span class="sub">WXYZ</span></button>
+    <button class="num-btn del" onclick="numDelete()">⌫</button>
+    <button class="num-btn zero" onclick="numInput('0')">0</button>
+    <button class="num-btn confirm-btn" id="numConfirmBtn" onclick="confirmRoom()" disabled data-i18n="confirm">確認</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 3: 主畫面（選備品）
+══════════════════════════════════════ -->
+<div class="screen" id="screen-main">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div class="hotel-name" onclick="handleStaffClick()" style="cursor: pointer;">
+          Lakeshore Hotel Hualien Taroko
+          <span class="hotel-name-zh">煙波花蓮太魯閣</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <a id="staff-home-btn-nav" href="/" class="staff-only-el" style="display:none !important;font-size:11px;background:rgba(201,169,110,0.15);color:#C9A96E;border:1px solid rgba(201,169,110,0.3);padding:3px 8px;border-radius:20px;text-decoration:none;font-weight:normal;cursor:pointer;white-space:nowrap;display:inline-block;">← 主選單 Home</a>
+        <div class="lang-switcher">
+          <button class="lang-btn active" onclick="setLang('zh')">中</button>
+          <button class="lang-btn" onclick="setLang('en')">EN</button>
+          <button class="lang-btn" onclick="setLang('ja')">日</button>
+          <button class="lang-btn" onclick="setLang('ko')">韓</button>
+        </div>
+      </div>
+    </div>
+    <div class="room-badge" onclick="showScreen('screen-welcome')" title="更換館別/房號">
+      <span id="headerBuildingBadge">—</span>
+      &nbsp;·&nbsp;
+      <span data-i18n="room">房號</span>
+      <strong id="roomDisplay">—</strong>
+      <span class="edit-hint">✎</span>
+    </div>
+  </div>
+
+  <!-- Greeting -->
+  <div class="greeting">
+    <div class="greeting-building" id="greetingBuilding"></div>
+    <div class="greeting-title" data-i18n="greeting">您好，有什麼需要服務的嗎？</div>
+    <div class="greeting-sub" data-i18n="greetingSub">請選擇您需要的備品，我們將盡快為您送達</div>
+  </div>
+
+  <div style="padding:0 20px 18px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="repair-entry-btn" onclick="showRepairScreen()">
+        <span style="font-size:22px">🔧</span>
+        <div style="flex:1;text-align:left">
+          <div class="repair-entry-title" data-i18n="repairBtn">客房報修</div>
+          <div class="repair-entry-sub" data-i18n="repairBtnSub">電器、水電、門鎖等問題回報</div>
+        </div>
+        <span style="color:rgba(217,107,107,0.6);font-size:18px">›</span>
+      </button>
+      <button class="room-issue-entry-btn repair-entry-btn" onclick="showRoomIssueScreen()">
+        <span style="font-size:22px">🧹</span>
+        <div style="flex:1;text-align:left">
+          <div class="room-issue-entry-title repair-entry-title" data-i18n="roomIssueBtn">客房問題反映</div>
+          <div class="room-issue-entry-sub repair-entry-sub" data-i18n="roomIssueBtnSub">清潔、污漬、異味等房況協助</div>
+        </div>
+        <span style="color:rgba(226,167,74,0.6);font-size:18px">›</span>
+      </button>
+      <button class="repair-entry-btn" style="background: rgba(201,169,110,0.1); border: 1.5px solid rgba(201,169,110,0.3)" onclick="openDirectoryModal()">
+        <span style="font-size:22px">ℹ️</span>
+        <div style="flex:1;text-align:left">
+          <div class="repair-entry-title" style="color: var(--gold)" data-i18n="directoryBtn">館內指南與設施說明</div>
+          <div class="repair-entry-sub" data-i18n="directoryBtnSub">開放時間、樓層導覽與說明</div>
+        </div>
+        <span style="color:rgba(201,169,110,0.6);font-size:18px">›</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="categoriesContainer"></div>
+
+  <!-- Remark -->
+  <div class="remark-section">
+    <div class="divider"><div class="divider-line"></div><div class="divider-dot"></div><div class="divider-line"></div></div>
+    <span class="remark-label" data-i18n="remarkLabel">特別備註 · Special Note</span>
+    <textarea class="remark-input" id="remarkInput" rows="3" placeholder="如有其他需求或說明，請在此輸入…"></textarea>
+  </div>
+
+  <!-- Submit -->
+  <div class="submit-bar">
+    <div class="submit-summary" id="submitSummary"></div>
+    <button class="submit-btn" id="submitBtn" onclick="submitRequest()" disabled>
+      <span data-i18n="submitBtn">送出服務需求</span>
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 4: 進度畫面
+══════════════════════════════════════ -->
+<div class="screen" id="screen-progress">
+  <div class="progress-header">
+    <div class="progress-check">✓</div>
+    <div class="progress-sent-title" data-i18n="successTitle">需求已送出</div>
+    <div class="progress-sent-sub" data-i18n="successSub">我們的服務人員將盡快為您送達</div>
+  </div>
+
+  <!-- Dynamic Live ETA Alert Card -->
+  <div id="liveEtaCard" style="background: rgba(201,169,110,0.1); border: 1.5px dashed var(--gold); border-radius: 12px; padding: 14px; margin: 16px 20px 0; display: none; align-items: center; gap: 12px;">
+    <div style="font-size: 26px; animation: pulseDot 2s infinite;">⏱️</div>
+    <div style="text-align: left;">
+      <div id="liveEtaTitle" style="font-size: 11px; opacity: 0.6; font-weight: 500; letter-spacing: 0.05em; color: var(--gold-light);">預估送達時間 · EXPECTED LIVE ETA</div>
+      <div id="liveEtaText" style="font-size: 13px; font-weight: bold; color: white; margin-top: 2px;"></div>
+    </div>
+  </div>
+
+  <!-- Ref -->
+  <div class="ref-box">
+    <div>
+      <div class="ref-label" data-i18n="refLabel">服務單號</div>
+      <div class="ref-number" id="progressRefNum">——</div>
+    </div>
+    <button class="copy-btn" onclick="copyRef()" data-i18n="copyBtn">複製</button>
+  </div>
+
+  <!-- Timeline -->
+  <div class="status-section">
+    <div class="status-section-title" data-i18n="statusTitle">服務進度</div>
+    <div class="timeline" id="progressTimeline"></div>
+  </div>
+
+  <!-- Items -->
+  <div class="items-summary">
+    <div class="items-summary-title" data-i18n="itemsTitle">本次需求項目</div>
+    <div class="summary-chip-list" id="progressItems"></div>
+  </div>
+
+  <!-- Actions -->
+  <div class="progress-actions">
+    <button class="action-btn-gold" onclick="resetAndGoHome()" data-i18n="newRequestBtn">再送一筆需求</button>
+    <button class="action-btn-outline" onclick="showScreen('screen-lookup')" data-i18n="lookupBtn2">查詢其他服務單</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 5.5: 報修畫面
+══════════════════════════════════════ -->
+<div class="screen" id="screen-repair">
+  <div class="repair-header">
+    <div class="repair-header-top">
+      <button class="repair-back-btn" onclick="showScreen('screen-main')">‹</button>
+      <div class="repair-title" data-i18n="repairTitle">客房報修</div>
+      <div class="repair-room-badge">
+        <span id="repairBuildingBadge"></span> · <span data-i18n="room">房號</span> <span id="repairRoomDisplay">—</span>
+      </div>
+    </div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.3);letter-spacing:0.05em" data-i18n="repairSub">請選擇需要維修的項目</div>
+  </div>
+
+  <div id="repairCategoriesContainer"></div>
+
+  <div class="remark-section" style="padding:0 20px;margin-top:8px">
+    <div class="divider"><div class="divider-line"></div><div class="divider-dot" style="background:#D96B6B"></div><div class="divider-line"></div></div>
+    <span class="remark-label" data-i18n="remarkLabel">問題描述（選填）</span>
+    <textarea class="remark-input" id="repairRemarkInput" rows="3" placeholder="請描述問題的詳細情況…"></textarea>
+  </div>
+
+  <div class="repair-submit-bar">
+    <div class="submit-summary" id="repairSubmitSummary" style="color:rgba(217,107,107,0.7)"></div>
+    <button class="repair-submit-btn" id="repairSubmitBtn" onclick="submitRepairRequest()" disabled>
+      <span data-i18n="repairSubmitBtn">送出報修需求</span>
+    </button>
+  </div>
+</div>
+
+<div class="screen" id="screen-room-issue">
+  <div class="repair-header">
+    <div class="repair-header-top">
+      <button class="repair-back-btn" onclick="showScreen('screen-main')">‹</button>
+      <div class="repair-title" data-i18n="roomIssueTitle">客房問題反映</div>
+      <div class="repair-room-badge">
+        <span id="roomIssueBuildingBadge"></span> · <span data-i18n="room">房號</span> <span id="roomIssueRoomDisplay">—</span>
+      </div>
+    </div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.3);letter-spacing:0.05em" data-i18n="roomIssueSub">請選擇房內需要協助的狀況</div>
+  </div>
+
+  <div id="roomIssueCategoriesContainer"></div>
+
+  <div class="remark-section" style="padding:0 20px;margin-top:8px">
+    <div class="divider"><div class="divider-line"></div><div class="divider-dot"></div><div class="divider-line"></div></div>
+    <span class="remark-label" data-i18n="roomIssueRemarkLabel">補充說明（選填）</span>
+    <textarea class="remark-input" id="roomIssueRemarkInput" rows="3" placeholder="例如：枕套有污漬、浴室地板還有頭髮…"></textarea>
+  </div>
+
+  <div class="repair-submit-bar">
+    <div class="submit-summary" id="roomIssueSubmitSummary" style="color:rgba(201,169,110,0.75)"></div>
+    <button class="repair-submit-btn" id="roomIssueSubmitBtn" onclick="submitRoomIssueRequest()" disabled>
+      <span data-i18n="roomIssueSubmitBtn">送出客房問題</span>
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 5: 查詢畫面
+══════════════════════════════════════ -->
+<div class="screen" id="screen-lookup">
+  <button class="back-btn-dark" onclick="goBackFromLookup()" style="margin:16px 0 0 0">‹</button>
+  <div class="lookup-title" data-i18n="lookupTitle">查詢服務進度</div>
+  <div class="lookup-sub" data-i18n="lookupSub">輸入您的六位服務單號</div>
+
+  <div class="lookup-input-wrap">
+    <input type="text" class="lookup-input" id="lookupInput" maxlength="6" placeholder="XXXXXX" oninput="this.value=this.value.toUpperCase()">
+    <button class="lookup-btn" onclick="doLookup()" data-i18n="lookupSearch">查詢</button>
+  </div>
+
+  <div class="lookup-result" id="lookupResult">
+    <div class="lookup-empty" data-i18n="lookupEmpty">請輸入服務單號進行查詢</div>
+  </div>
+</div>
+
+<!-- GUEST DIRECTORY MODAL -->
+<div class="notice-overlay" id="directoryOverlay">
+  <div class="notice-sheet" style="max-height: 85vh; overflow-y: auto;">
+    <div class="notice-handle"></div>
+    <div class="notice-icon">🕌</div>
+    <div class="notice-title" id="directoryTitle">館內設施指南</div>
+    <div class="notice-subtitle">Hotel Directory & Facility Guide</div>
+    <div class="notice-list" id="directoryList" style="text-align: left; max-height: 50vh; overflow-y: auto; padding-right: 4px;"></div>
+    <button class="notice-confirm-btn" onclick="closeDirectoryModal()" id="directoryCloseBtn" style="margin-top: 10px;">關閉指南</button>
+  </div>
+</div>
+
+<!-- NOTICE MODAL -->
+<div class="notice-overlay" id="noticeOverlay">
+  <div class="notice-sheet">
+    <div class="notice-handle"></div>
+    <div class="notice-icon">📋</div>
+    <div class="notice-title" id="noticeTitle">送出前請注意</div>
+    <div class="notice-subtitle" id="noticeSubtitle">Please read before submitting</div>
+    <div class="notice-list" id="noticeList"></div>
+    <button class="notice-confirm-btn" id="noticeConfirmBtn" onclick="confirmAndSubmit()"></button>
+    <button class="notice-cancel-btn" onclick="closeNotice()"></button>
+  </div>
+</div>
+
+<!-- DND ALERT BANNER -->
+<div class="dnd-banner" id="dndBanner">
+  <div class="dnd-banner-inner">
+    <div class="dnd-banner-icon">🔴</div>
+    <div class="dnd-banner-text">
+      <div class="dnd-banner-title" id="dndTitle">請關閉請勿打擾燈號</div>
+      <div class="dnd-banner-body" id="dndBody">服務人員已在門外等候，請關閉房門的請勿打擾燈號</div>
+    </div>
+    <button class="dnd-banner-close" onclick="closeDndBanner()">✕</button>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
+
+<!-- ══ FIREBASE ══ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCFDq7PjC5j--bnHJ9SBglao4_avOCEge8",
+  authDomain: "lakeshore-guest-service.firebaseapp.com",
+  databaseURL: "https://lakeshore-guest-service-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "lakeshore-guest-service",
+  storageBucket: "lakeshore-guest-service.firebasestorage.app",
+  messagingSenderId: "1026886642744",
+  appId: "1:1026886642744:web:225dccc902e0a7d9e00acd"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+let messaging = null;
+try { messaging = firebase.messaging(); } catch(e) {}
+
+const GUEST_VAPID_KEY = "BPUJ4xiIuzDsTwn-Yy84wIm1z_QJRzxr5n2F2odFgjUFu6P9loAnrGFhZ-QKsq5PLOXMnAdsdpbIlb3lVd1HKDk";
+let currentFbKey = null;  // 送出後記錄此筆訂單的 Firebase key
+
+// ── i18n ─────────────────────────────────────────────
+const i18n = {
+  zh: {
+    repairBtn: '客房報修',
+    repairBtnSub: '電器、水電、門鎖等問題回報',
+    repairTitle: '客房報修',
+    repairSub: '請選擇需要維修的項目',
+    repairSubmitBtn: '送出報修需求',
+    roomIssueBtn: '客房問題反映',
+    roomIssueBtnSub: '清潔、污漬、異味等房況協助',
+    roomIssueTitle: '客房問題反映',
+    roomIssueSub: '請選擇房內需要協助的狀況',
+    roomIssueRemarkLabel: '補充說明（選填）',
+    roomIssueRemarkPlaceholder: '例如：枕套有污漬、浴室地板還有頭髮…',
+    roomIssueSubmitBtn: '送出客房問題',
+    serviceHeading: '客房服務',
+    serviceHeadingEn: 'In-Room Service Request',
+    serviceDesc: '您有任何備品需求，我們隨時為您服務',
+    welcomeTitle: '請選擇您的館別',
+    enterRoom: '請輸入房號',
+    roomHint: '輸入您的房間號碼',
+    confirm: '確認',
+    room: '房號',
+    greeting: '您好，有什麼需要服務的嗎？',
+    greetingSub: '請選擇您需要的備品，我們將盡快為您送達',
+    remarkLabel: '特別備註 · Special Note',
+    remarkPlaceholder: '如有其他需求或說明，請在此輸入…',
+    submitBtn: '送出服務需求',
+    successTitle: '需求已送出',
+    successSub: '我們的服務人員將盡快為您送達',
+    refLabel: '服務單號',
+    copyBtn: '複製',
+    copyDone: '已複製 ✓',
+    statusTitle: '服務進度',
+    itemsTitle: '本次需求項目',
+    newRequestBtn: '再送一筆需求',
+    lookupBtn: '查詢服務進度',
+    lookupBtn2: '查詢其他服務單',
+    lookupTitle: '查詢服務進度',
+    lookupSub: '輸入您的六位服務單號',
+    lookupSearch: '查詢',
+    lookupEmpty: '請輸入服務單號進行查詢',
+    lookupNotFound: '找不到此服務單，請確認單號是否正確',
+    statusPending: '待處理',
+    statusProcessing: '處理中',
+    statusDone: '已完成',
+    timelineSent: '需求已送出',
+    timelineSentSub: '我們已收到您的請求，正在安排服務人員',
+    timelineAssigned: '服務人員已接單',
+    timelineAssignedSub: () => '服務人員正在為您準備備品',
+    timelineAssignedWait: '等待服務人員接單',
+    timelineGoing: '服務人員前往中',
+    timelineGoingSub: () => '服務人員正在前往您的房間',
+    timelineGoingWait: '正在前往',
+    timelineDone: '服務已完成',
+    timelineDoneSub: '感謝您的耐心等候，如有其他需求歡迎再次送出',
+    timelineWaitDone: '等待完成',
+    timelineCancelled: '服務已取消',
+    timelineCancelledSub: '您申請的備品目前庫存不足，服務人員將盡快與您聯繫。造成不便敬請見諒。',
+    summaryText: (n, items) => `已選 ${n} 項：${items}`,
+    roomIssueSummaryText: (name) => `已選問題：${name}`,
+    noticeTitle: '送出前請注意',
+    noticeSubtitle: '請確認以下事項後再送出需求',
+    noticeItems: [
+      '請確認房門燈號「<strong>請勿打擾</strong>」未亮起，否則服務人員將無法進入房間送達備品。',
+      '若服務人員抵達時房內<strong>無人</strong>，本次服務將自動取消，如有需要請重新提出申請。',
+      '部分備品<strong>數量有限</strong>，若您所需備品暫時無法提供，服務人員將致電通知您。'
+    ],
+    noticeConfirm: '我已了解，送出需求',
+    noticeCancel: '返回修改',
+  },
+  en: {
+    repairBtn: 'Report Repair',
+    repairBtnSub: 'Electrical, plumbing, lock issues',
+    repairTitle: 'Maintenance Request',
+    repairSub: 'Please select the issue to report',
+    repairSubmitBtn: 'Submit Repair Request',
+    roomIssueBtn: 'Report Room Issue',
+    roomIssueBtnSub: 'Cleaning, stains, odors, and room condition help',
+    roomIssueTitle: 'Room Issue Report',
+    roomIssueSub: 'Please select the room condition issue',
+    roomIssueRemarkLabel: 'Additional Note (Optional)',
+    roomIssueRemarkPlaceholder: 'For example: stained pillowcase, hair on bathroom floor...',
+    roomIssueSubmitBtn: 'Submit Room Issue',
+    serviceHeading: 'Room Service',
+    serviceHeadingEn: 'In-Room Service Request',
+    serviceDesc: 'We are here to assist you at any time.',
+    welcomeTitle: 'Please select your building',
+    enterRoom: 'Enter Room Number',
+    roomHint: 'Enter your room number',
+    confirm: 'OK',
+    room: 'Room',
+    greeting: 'Hello! How can we assist you?',
+    greetingSub: 'Select items and we\'ll deliver them shortly.',
+    remarkLabel: 'Special Note',
+    remarkPlaceholder: 'Any additional requests...',
+    submitBtn: 'Submit Request',
+    successTitle: 'Request Submitted',
+    successSub: 'Our staff will deliver your items shortly.',
+    refLabel: 'Request ID',
+    copyBtn: 'Copy',
+    copyDone: 'Copied ✓',
+    statusTitle: 'Service Progress',
+    itemsTitle: 'Requested Items',
+    newRequestBtn: 'New Request',
+    lookupBtn: 'Track Request',
+    lookupBtn2: 'Track Another Request',
+    lookupTitle: 'Track Your Request',
+    lookupSub: 'Enter your 6-character request ID',
+    lookupSearch: 'Search',
+    lookupEmpty: 'Enter your request ID to track status',
+    lookupNotFound: 'Request not found. Please check your ID.',
+    statusPending: 'Pending',
+    statusProcessing: 'In Progress',
+    statusDone: 'Completed',
+    timelineSent: 'Request Received',
+    timelineSentSub: 'We have received your request and are arranging staff',
+    timelineAssigned: 'Staff Assigned',
+    timelineAssignedSub: () => 'Our staff is preparing your items',
+    timelineAssignedWait: 'Awaiting staff assignment',
+    timelineGoing: 'Staff on the Way',
+    timelineGoingSub: () => 'Our staff is heading to your room',
+    timelineGoingWait: 'Heading to your room',
+    timelineDone: 'Service Completed',
+    timelineDoneSub: 'Thank you for your patience. Feel free to submit another request anytime.',
+    timelineWaitDone: 'Awaiting completion',
+    timelineCancelled: 'Service Cancelled',
+    timelineCancelledSub: 'The requested item is currently out of stock. Our staff will contact you shortly. We apologize for the inconvenience.',
+    summaryText: (n, items) => `${n} item(s): ${items}`,
+    roomIssueSummaryText: (name) => `Selected issue: ${name}`,
+    noticeTitle: 'Before You Submit',
+    noticeSubtitle: 'Please read the following carefully',
+    noticeItems: [
+      "Please ensure the <strong>&ldquo;Do Not Disturb&rdquo;</strong> light on your door is off. If it remains on, our staff will be unable to enter and deliver your request.",
+      "If no one is in the room upon our staff's arrival, the service will be <strong>automatically cancelled</strong>. Please submit a new request if needed.",
+      "Some items are subject to <strong>limited availability</strong>. If any requested item cannot be provided, our staff will contact you by phone.",
+    ],
+    noticeConfirm: "I Understand — Submit Request",
+    noticeCancel: "Go Back",
+  },
+  ja: {
+    repairBtn: '客室修理報告',
+    repairBtnSub: '電気・水道・鍵などの問題',
+    repairTitle: '修理リクエスト',
+    repairSub: '修理が必要な項目を選択してください',
+    repairSubmitBtn: '修理リクエストを送信',
+    roomIssueBtn: '客室の問題を報告',
+    roomIssueBtnSub: '清掃、汚れ、においなどのご相談',
+    roomIssueTitle: '客室の問題報告',
+    roomIssueSub: 'お部屋でお困りの状況を選択してください',
+    roomIssueRemarkLabel: '補足説明（任意）',
+    roomIssueRemarkPlaceholder: '例: 枕カバーに汚れ、浴室床に髪の毛が残っている…',
+    roomIssueSubmitBtn: '客室の問題を送信',
+    serviceHeading: 'ルームサービス',
+    serviceHeadingEn: 'In-Room Service Request',
+    serviceDesc: 'いつでもお気軽にお申し付けください。',
+    welcomeTitle: '棟をお選びください',
+    enterRoom: 'お部屋番号を入力',
+    roomHint: '部屋番号を入力してください',
+    confirm: '確認',
+    room: 'お部屋',
+    greeting: 'ご用件をお申し付けください',
+    greetingSub: 'ご希望のアメニティをお選びください。',
+    remarkLabel: '特記事項',
+    remarkPlaceholder: 'その他ご要望がございましたらご記入ください…',
+    submitBtn: 'リクエストを送信',
+    successTitle: '送信完了',
+    successSub: 'スタッフが速やかにお届けいたします。',
+    refLabel: '受付番号',
+    copyBtn: 'コピー',
+    copyDone: 'コピー済 ✓',
+    statusTitle: 'サービス進捗',
+    itemsTitle: 'ご依頼内容',
+    newRequestBtn: '再度リクエスト',
+    lookupBtn: '進捗を確認',
+    lookupBtn2: '他の受付番号を確認',
+    lookupTitle: 'サービス進捗確認',
+    lookupSub: '6桁の受付番号を入力してください',
+    lookupSearch: '検索',
+    lookupEmpty: '受付番号を入力して検索してください',
+    lookupNotFound: '受付番号が見つかりません。番号をご確認ください。',
+    statusPending: '受付中',
+    statusProcessing: '対応中',
+    statusDone: '完了',
+    timelineSent: 'リクエスト受信',
+    timelineSentSub: 'リクエストを受け付けました。スタッフを手配しております',
+    timelineAssigned: 'スタッフ確定',
+    timelineAssignedSub: () => 'スタッフがご準備しております',
+    timelineAssignedWait: 'スタッフ手配中',
+    timelineGoing: 'スタッフ向かっています',
+    timelineGoingSub: () => 'スタッフがお部屋に向かっております',
+    timelineGoingWait: 'お部屋へ向かっています',
+    timelineDone: 'サービス完了',
+    timelineDoneSub: 'お待たせいlet facilityData = [];
+
+// Register dynamic listener for Club Facilities and Map attributes properties
+db.ref('facilities').on('value', (snap) => {
+  const data = snap.val();
+  if (data) {
+    facilityData = Object.values(data)
+      .filter(f => f.active !== false)
+      .sort((a, b) => (a.order || 0) - (b.order || 0))
+      .map(f => {
+        return {
+          icon: f.icon || '🏊‍♂️',
+          name: {
+            zh: f.nameZh || '',
+            en: f.nameEn || f.nameZh || '',
+            ja: f.nameJa || f.nameZh || '',
+            ko: f.nameKo || f.nameZh || ''
+          },
+          hours: f.hours || '',
+          location: {
+            zh: f.locZh || '',
+            en: f.locEn || f.locZh || '',
+            ja: f.locJa || f.locZh || '',
+            ko: f.locKo || f.locZh || ''
+          },
+          desc: {
+            zh: f.descZh || '',
+            en: f.descEn || f.descZh || '',
+            ja: f.descJa || f.descZh || '',
+            ko: f.descKo || f.descZh || ''
+          }
+        };
+      });
+  } else {
+    facilityData = [];
+  }
+});� 입력하십시오',
+    confirm: '확인',
+    room: '객실',
+    greeting: '안녕하세요! 무엇을 도와드릴까요?',
+    greetingSub: '필요하신 어메니티를 선택하시면 신속히 전달해 드리겠습니다',
+    remarkLabel: '특별 메모',
+    remarkPlaceholder: '기타 요청 사항이나 설명이 있으시면 입력해 주세요…',
+    submitBtn: '서비스 요청 제출',
+    successTitle: '요청이 전송되었습니다',
+    successSub: '저희 팀이 신속하게 요청하신 아메니티를 전달해 드리겠습니다',
+    refLabel: '서비스 번호',
+    copyBtn: '복사',
+    copyDone: '복사 완료 ✓',
+    statusTitle: '서비스 진행 상황',
+    itemsTitle: '요청한 항목',
+    newRequestBtn: '새 요청 보내기',
+    lookupBtn: '서비스 진행 검색',
+    lookupBtn2: '기타 서비스 전송 확인',
+    lookupTitle: '서비스 진행 상황 확인',
+    lookupSub: '6자리 서비스 번호를 입력해 주세요',
+    lookupSearch: '검색',
+    lookupEmpty: '서비스 번호를 입력하고 검색을 진행해 주세요',
+    lookupNotFound: '해당 서비스 요청을 찾을 수 없습니다. 번호를 다시 확인해 주세요.',
+    statusPending: '대기 중',
+    statusProcessing: '진행 중',
+    statusDone: '완료',
+    timelineSent: '요청 전송 완료',
+    timelineSentSub: '요청이 신속히 접수되어 지원 담당자를 배정 중입니다',
+    timelineAssigned: '담당자 배정 완료',
+    timelineAssignedSub: () => '담당자가 요청하신 물품을 준비 중입니다',
+    timelineAssignedWait: '담당자 배정 대기 중',
+    timelineGoing: '배달 진행 중',
+    timelineGoingSub: () => '담당자가 당신의 객실로 이동 중입니다',
+    timelineGoingWait: '객실로 이동 중',
+    timelineDone: '서비스 완료',
+    timelineDoneSub: '기다려 주셔서 감사합니다. 다른 요청이 있으시면 언제든지 다시 신청해 주세요.',
+    timelineWaitDone: '완료 대기 중',
+    timelineCancelled: '서비스 취소',
+    timelineCancelledSub: '일부 어메니티의 일시적인 재고 부족으로 인해 서비스가 취소되었습니다. 담당자가 곧 차량/유선으로 안내해 드리겠습니다. 대단히 죄송합니다.',
+    summaryText: (n, items) => `선택된 ${n}개 항목: ${items}`,
+    roomIssueSummaryText: (name) => `선택된 문제 상황: ${name}`,
+    noticeTitle: '전송 전 유의 사항',
+    noticeSubtitle: '아래의 안내를 자세히 읽고 요청해 주시기 바랍니다',
+    noticeItems: [
+      '방문의 <strong>&ldquo;방해 금지(Do Not Disturb)&rdquo;</strong> 표시등이 켜져 있지 않은지 확인해 주세요. 켜져 있는 동안에는 서비스 배달이 지연될 수 있습니다.',
+      '배달 담당자가 방문 시 <strong>객실 내 사람이 없는 경우</strong> 서비스 제공이 자동으로 취소될 수 있습니다.',
+      '일부 어메니티는 <strong>한정 수량</strong>으로 조기 품절될 수 있으며, 제공 불가 시 별도로 전화를 드립니다.'
+    ],
+    noticeConfirm: '확인함 — 요청 제출',
+    noticeCancel: '돌아가기',
+    directoryBtn: '관내 안내 및 서비스 안내',
+    directoryBtnSub: '영업 시간, 층수 정보 및 자동 Q&A'
+  }
+};
+
+// ── Buildings ─────────────────────────────────────────
+const buildings = {
+  tranquil: { zh: '沁海館', en: 'Tranquil Building', ja: '沁海館', ko: '沁海館 (친하이관)' },
+  moment:   { zh: '煙波花蓮花時間', en: 'The Moment Hotel', ja: '花時間', ko: '煙波花蓮花時間 (더 모먼트)' },
+  serenity: { zh: '山闊館', en: 'Serenity Building', ja: '山闊館', ko: '山闊館 (샨쿠어관)' },
+};
+
+// ── State ─────────────────────────────────────────────
+let currentLang = 'zh';
+let selectedBuilding = null;
+let roomInput = '';
+let roomNumber = '';
+let quantities = {};
+let categories = [];
+let currentRequestId = null;
+let currentRequestRef = null; // for live listener
+let currentRequestType = 'service';
+let progressListenerKey = null;
+let progressListenerHandler = null;
+let dndListenerHandler = null;
+let lookupListenerKey = null;
+let lookupListenerHandler = null;
+let categoriesListenerHandler = null;
+let repairCategoriesListenerHandler = null;
+let categoriesListAllTimer = null;
+
+const facilityData = [
+  {
+    icon: '🏊‍♂️',
+    name: {
+      zh: '沁海館 - 露天溫水游泳池',
+      en: 'Tranquil Building - Outdoor Heated Pool',
+      ja: '沁海館 - 露天温水プール',
+      ko: '沁海館 - 야외 온수 수영장'
+    },
+    hours: '07:00 - 22:00',
+    location: { zh: '沁海館 1F', en: 'Tranquil Building 1F', ja: '沁海館 1階', ko: '친하이관 1층' },
+    desc: {
+      zh: '直面太平洋海景！現場備有大浴巾，每日進行水質檢測維護保障安全。',
+      en: 'Directly overlooking the Pacific Ocean! Big towels are provided on-site, water is tested daily.',
+      ja: '太平洋を一望できる極上のプール！タオル常備、安全のため毎日の水質分析を実施。',
+      ko: '태평양 바다가 시원하게 펼쳐지는 오션뷰! 대형 타월이 준비되어 있으며, 매일 세심하게 수질을 관리합니다.'
+    }
+  },
+  {
+    icon: '🌌',
+    name: {
+      zh: '露天星空水療池',
+      en: 'Starry Sky Jacuzzi Spas',
+      ja: '露天星空ジャグジー・スパ',
+      ko: '루프탑 야외 별빛 스파'
+    },
+    hours: '15:00 - 22:00',
+    location: { zh: '沁海館 RF', en: 'Tranquil Building Roof', ja: '沁海館 屋上', ko: '친하이관 루프탑' },
+    desc: {
+      zh: '享受頂樓恆溫水療泡湯，夜晚點亮星空氛圍，一邊泡澡一邊聆聽海浪浪濤聲。',
+      en: 'Warm cozy water rooftop pool. Fully styled under Hualien\'s galaxy and starry breeze waves.',
+      ja: '屋上の温水スパでリラクゼーション。夜はきらめく星空とさざ波の音に包まれます。',
+      ko: '지붕 위 따뜻한 원수 스파 시설. 밤에는 반짝이는 밤하늘 별과 잔잔한 파도 소리를 즐길 수 있습니다.'
+    }
+  },
+  {
+    icon: '🧘',
+    name: {
+      zh: '山闊館 - 瑜珈冥想教室',
+      en: 'Serenity Building - Yoga & Mind Studio',
+      ja: '山闊館 - ヨガ・瞑想スタジオ',
+      ko: '山闊館 - 요가 & 명상 요가원'
+    },
+    hours: '08:00 - 21:00',
+    location: { zh: '山闊館 2F', en: 'Serenity Building 2F', ja: '山闊館 2階', ko: '샨쿠어관 2층' },
+    desc: {
+      zh: '沈澱心靈與呼吸！瑜珈墊已全面鋪設，可於房內透過系統/客務電話預訂專屬時段。',
+      en: 'Calm down your mind and breathing. Yoga mats are available. Pre-order is highly recommended.',
+      ja: '静かな時間、瞑想の呼吸を。ヨガマット完備。フロントにて事前時間帯予約が可能です。',
+      ko: '마음의 평온과 깊은 휴식! 고급 요가 매트가 완비되어 있으며 프론트에서 예약 후 맞춤 이용하실 수 있습니다.'
+    }
+  },
+  {
+    icon: '🧸',
+    name: {
+      zh: '親子歡樂森林遊戲區',
+      en: 'Children Forest Play Zone',
+      ja: 'キッズ・フォレスト・プレイエリア',
+      ko: '키즈 포레스트 놀이 공간'
+    },
+    hours: '09:00 - 21:00',
+    location: { zh: '煙波花蓮花時間 1F', en: 'The Moment Hotel 1F', ja: '花時間 1階', ko: '더 모먼트 호텔 1층' },
+    desc: {
+      zh: '專為兒童設計的森林攀爬遊戲室與靜態手作體驗，入住貴賓皆可免費體驗。',
+      en: 'Specially designed forest climbing and hand-craft center for children. Complimentary for hotel guests.',
+      ja: 'お子様向けのファンタジー屋内プレイエリア！工作教室も併設、ご宿泊のお客様は無料で利用可能。',
+      ko: '안전하게 뛰놀 수 있는 친환경 아동 놀이터 및 공예 체험실! 투숙하시는 소중한 아이들의 무료 참여가 가능합니다.'
+    }
+  }
+];
+
+window.openDirectoryModal = function() {
+  const container = document.getElementById('directoryList');
+  if (!container) return;
+  const titleText = {
+    zh: '館內設施指南 & 說明',
+    en: 'Hotel Directory & Facility Guide',
+    ja: '館内施設案内・時間のご案内',
+    ko: '호텔 시설 안내 및 영업시간'
+  }[currentLang] || '館內設施指南';
+  document.getElementById('directoryTitle').textContent = titleText;
+  const closeText = {
+    zh: '關閉指南',
+    en: 'Close Guide',
+    ja: '閉じる',
+    ko: '안내 닫기'
+  }[currentLang] || '關閉指南';
+  document.getElementById('directoryCloseBtn').textContent = closeText;
+  
+  const listToRender = (window.guestFacilities && window.guestFacilities.length > 0) ? window.guestFacilities : facilityData.map(f => ({
+    icon: f.icon,
+    hours: f.hours,
+    nameZh: f.name.zh,
+    nameEn: f.name.en,
+    nameJa: f.name.ja,
+    nameKo: f.name.ko,
+    locZh: f.location.zh,
+    locEn: f.location.en,
+    locJa: f.location.ja,
+    locKo: f.location.ko,
+    descZh: f.desc.zh,
+    descEn: f.desc.en,
+    descJa: f.desc.ja,
+    descKo: f.desc.ko
+  }));
+
+  container.innerHTML = listToRender.map(f => {
+    let name = f.nameZh;
+    let loc = f.locZh;
+    let desc = f.descZh;
+
+    if (currentLang === 'en') {
+      name = f.nameEn || f.nameZh;
+      loc = f.locEn || f.locZh;
+      desc = f.descEn || f.descZh;
+    } else if (currentLang === 'ja') {
+      name = f.nameJa || f.nameZh;
+      loc = f.locJa || f.locZh;
+      desc = f.descJa || f.descZh;
+    } else if (currentLang === 'ko') {
+      name = f.nameKo || f.nameZh;
+      loc = f.locKo || f.locZh;
+      desc = f.descKo || f.descZh;
+    }
+
+    const hoursLabel = { zh: '營業時間', en: 'Hours', ja: '営業時間', ko: '영업 시간' }[currentLang] || '時間';
+    const locLabel = { zh: '位置', en: 'Location', ja: '場所', ko: '위치' }[currentLang] || '位置';
+    return `
+      <div class="notice-item" style="display:block; margin-bottom:12px; border-left:3px solid var(--gold); background:rgba(255,255,255,0.02)">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px">
+          <span style="font-size:20px">${f.icon}</span>
+          <strong style="font-size:14.5px; color:var(--gold-light);">${name}</strong>
+        </div>
+        <div style="font-size:11px; color:rgba(255,255,255,0.5); margin-bottom:6px">
+          📍 ${locLabel}: ${loc} &nbsp;|&nbsp; 🕒 ${hoursLabel}: ${f.hours}
+        </div>
+        <div style="font-size:12px; color:rgba(255,255,255,0.75); line-height:1.6;">
+          ${desc}
+        </div>
+      </div>`;
+  }).join('');
+  const overlay = document.getElementById('directoryOverlay');
+  if (overlay) overlay.classList.add('show');
+};
+
+window.closeDirectoryModal = function() {
+  const overlay = document.getElementById('directoryOverlay');
+  if (overlay) overlay.classList.remove('show');
+};
+
+const roomIssueCategories = [
+  { id: 'linen_stain', icon: '🛏️', zh: '床單／寢具污漬', en: 'Linen or Bedding Stain', ja: '寝具の汚れ' },
+  { id: 'floor_dirty', icon: '🧹', zh: '地板髒污', en: 'Dirty Floor', ja: '床の汚れ' },
+  { id: 'bathroom_cleaning', icon: '🛁', zh: '浴室清潔問題', en: 'Bathroom Cleaning Issue', ja: '浴室清掃の問題' },
+  { id: 'trash_uncleared', icon: '🗑️', zh: '垃圾未清', en: 'Trash Not Cleared', ja: 'ごみ未回収' },
+  { id: 'odor_issue', icon: '👃', zh: '異味問題', en: 'Odor Issue', ja: 'においの問題' },
+  { id: 'other_issue', icon: '📋', zh: '其他狀況', en: 'Other Situation', ja: 'その他の状況' },
+];
+let selectedRoomIssueId = '';
+
+// ── Screen Management ─────────────────────────────────
+window.showScreen = function(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+};
+
+// ── Lang ──────────────────────────────────────────────
+window.setLang = function(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active',
+      (lang==='zh' && b.textContent==='中') ||
+      (lang==='en' && b.textContent==='EN') ||
+      (lang==='ja' && b.textContent==='日') ||
+      (lang==='ko' && b.textContent==='韓'));
+  });
+  applyI18n();
+  renderCategories();
+  updateSummary();
+  if (selectedBuilding) updateBuildingDisplay();
+};
+
+function applyI18n() {
+  const t = i18n[currentLang];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (t[key]) el.textContent = t[key];
+  });
+  const remarkinput = document.getElementById('remarkInput');
+  if (remarkinput) remarkinput.placeholder = t.remarkPlaceholder;
+  const repairRemarkInput = document.getElementById('repairRemarkInput');
+  if (repairRemarkInput) repairRemarkInput.placeholder = currentLang === 'en'
+    ? 'Please describe the issue in detail...'
+    : currentLang === 'ja'
+    ? '問題の詳細をご記入ください…'
+    : '請描述問題的詳細情況…';
+  const roomIssueRemarkInput = document.getElementById('roomIssueRemarkInput');
+  if (roomIssueRemarkInput) roomIssueRemarkInput.placeholder = t.roomIssueRemarkPlaceholder;
+  renderRepairCategories();
+  updateRepairSummary();
+  renderRoomIssueCategories();
+  updateRoomIssueSubmitState();
+  updateProgressHeaderCopy(currentRequestType);
+}
+
+function updateRequestScreenLocation(buildingBadgeId, roomDisplayId) {
+  const buildingBadge = document.getElementById(buildingBadgeId);
+  const roomDisplay = document.getElementById(roomDisplayId);
+  if (buildingBadge && selectedBuilding) {
+    const b = buildings[selectedBuilding];
+    buildingBadge.textContent = currentLang === 'zh' ? b.zh : currentLang === 'en' ? b.en : currentLang === 'ja' ? b.ja : b.ko;
+  }
+  if (roomDisplay) roomDisplay.textContent = roomNumber || '—';
+}
+
+function initializeRequestScreen({ screenId, buildingBadgeId, roomDisplayId, resetSelection, renderScreen, updateSubmitState, remarkInputId }) {
+  updateRequestScreenLocation(buildingBadgeId, roomDisplayId);
+  resetSelection();
+  renderScreen();
+  updateSubmitState();
+  const remarkInput = document.getElementById(remarkInputId);
+  if (remarkInput) remarkInput.value = '';
+  showScreen(screenId);
+}
+
+// ── Building Select ───────────────────────────────────
+window.selectBuilding = function(buildingKey) {
+  selectedBuilding = buildingKey;
+  roomInput = '';
+  updateRoomDisplay();
+  const b = buildings[buildingKey];
+  document.getElementById('roomHeaderBuilding').textContent =
+    currentLang === 'zh' ? b.zh : currentLang === 'en' ? b.en : b.ja;
+  showScreen('screen-room');
+};
+
+function updateBuildingDisplay() {
+  if (!selectedBuilding) return;
+  const b = buildings[selectedBuilding];
+  const name = currentLang === 'zh' ? b.zh : currentLang === 'en' ? b.en : currentLang === 'ja' ? b.ja : b.ko;
+  const el = document.getElementById('headerBuildingBadge');
+  if (el) el.textContent = name;
+  const gb = document.getElementById('greetingBuilding');
+  if (gb) gb.textContent = name;
+  document.getElementById('roomHeaderBuilding').textContent = name;
+}
+
+// ── Numpad ────────────────────────────────────────────
+window.numInput = function(d) {
+  if (roomInput.length >= 4) return;
+  roomInput += d;
+  updateRoomDisplay();
+};
+
+window.numDelete = function() {
+  roomInput = roomInput.slice(0, -1);
+  updateRoomDisplay();
+};
+
+function updateRoomDisplay() {
+  const el = document.getElementById('roomNumberDisplay');
+  const btn = document.getElementById('numConfirmBtn');
+  if (roomInput.length === 0) {
+    el.innerHTML = '<span class="cursor"></span>';
+    el.className = 'room-number-display empty';
+  } else {
+    el.textContent = roomInput;
+    el.className = 'room-number-display';
+  }
+  btn.disabled = roomInput.length === 0;
+}
+
+window.confirmRoom = function() {
+  if (!roomInput) return;
+  roomNumber = roomInput;
+  document.getElementById('roomDisplay').textContent = roomNumber;
+  updateBuildingDisplay();
+  applyI18n();
+  loadCategories();
+  loadRepairCategories();
+  loadFacilities();
+  showScreen('screen-main');
+  window.scrollTo(0, 0);
+};
+
+// ── Facilities ────────────────────────────────────────
+window.guestFacilities = [];
+let facilitiesListenerHandler = null;
+
+window.loadFacilities = function() {
+  if (facilitiesListenerHandler) {
+    db.ref('facilities').off('value', facilitiesListenerHandler);
+  }
+  facilitiesListenerHandler = (snap) => {
+    if (snap.exists()) {
+      const data = snap.val();
+      window.guestFacilities = Object.entries(data)
+        .map(([id, fac]) => ({ id, ...fac }))
+        .filter(f => f.active !== false)
+        .sort((a, b) => (a.order || 0) - (b.order || 0));
+    } else {
+      window.guestFacilities = [];
+    }
+  };
+  db.ref('facilities').on('value', facilitiesListenerHandler);
+};
+
+// ── Categories ────────────────────────────────────────
+function loadCategories() {
+  if (categoriesListenerHandler) {
+    db.ref('categories').off('value', categoriesListenerHandler);
+  }
+  categoriesListenerHandler = (snap) => {
+    if (snap.exists()) {
+      const data = snap.val();
+      categories = Object.entries(data)
+        .map(([id, cat]) => ({ id, ...cat }))
+        .filter(c => c.active !== false)
+        .sort((a, b) => (a.order || 0) - (b.order || 0));
+    } else { categories = []; }
+    renderCategories();
+  };
+  db.ref('categories').on('value', categoriesListenerHandler);
+}
+
+window.renderCategories = function() {
+  const container = document.getElementById('categoriesContainer');
+  if (!container) return;
+  if (!categories.length) {
+    container.innerHTML = '<div class="empty-categories">載入中…</div>';
+    return;
+  }
+
+  container.innerHTML = categories.map(cat => {
+    const catName = currentLang==='zh' ? cat.nameZh : currentLang==='en' ? cat.nameEn : cat.nameJa;
+    const items = cat.items
+      ? Object.entries(cat.items).map(([id, item]) => ({ id: `${cat.id}_${id}`, catId: cat.id, rawId: id, ...item }))
+      : [];
+    if (!items.length) return '';
+    return `
+      <div class="divider"><div class="divider-line"></div><div class="divider-dot"></div><div class="divider-line"></div></div>
+      <div class="category-label">${cat.icon || ''} ${catName}</div>
+      <div class="items-grid">
+        ${items.map(item => {
+          const itemName = currentLang==='zh' ? item.nameZh : currentLang==='en' ? item.nameEn : item.nameJa;
+          const qty = quantities[item.id] || 0;
+
+          // 押金 badge
+          let depositBadge = '';
+          if (item.depositRequired) {
+            const depositLabel = {
+              zh: item.depositAmount ? `需押金 NT$${item.depositAmount}` : '需押金',
+              en: item.depositAmount ? `Deposit NT$${item.depositAmount}` : 'Deposit Required',
+              ja: item.depositAmount ? `デポジット NT$${item.depositAmount}` : 'デポジット必要',
+            }[currentLang];
+            depositBadge = `<span class="badge-deposit">💰 ${depositLabel}</span>`;
+          }
+
+          // 標籤 badges
+          const tagLabels = {
+            '習慣睡姿為平躺者': { en: 'Back Sleeper', ja: '仰向き派' },
+            '習慣睡姿為側躺者': { en: 'Side Sleeper', ja: '横向き派' },
+            '抗過敏': { en: 'Hypoallergenic', ja: '低アレルゲン' },
+          };
+          const tagBadges = (item.tags || []).map(tag => {
+            const label = currentLang === 'zh' ? tag
+              : currentLang === 'en' ? (tagLabels[tag]?.en || tag)
+              : (tagLabels[tag]?.ja || tag);
+            return `<span class="badge-tag">🏷 ${label}</span>`;
+          }).join('');
+
+          const badges = depositBadge || tagBadges
+            ? `<div class="item-badges">${depositBadge}${tagBadges}</div>` : '';
+
+          return `
+            <div class="item-card ${qty > 0 ? 'selected' : ''}" id="card_${item.id}">
+              <div class="selected-dot"></div>
+              <span class="item-icon">${item.icon || '📦'}</span>
+              <div class="item-name">${itemName}</div>
+              ${badges}
+              <div class="qty-control">
+                <button class="qty-btn minus" onclick="changeQty('${item.id}', -1)">−</button>
+                <span class="qty-num" id="qty_${item.id}">${qty}</span>
+                <button class="qty-btn plus ${qty > 0 ? 'active' : ''}" onclick="changeQty('${item.id}', 1)">＋</button>
+              </div>
+            </div>`;
+        }).join('')}
+      </div>`;
+  }).join('');
+};
+
+// ── Qty ───────────────────────────────────────────────
+window.changeQty = function(itemId, delta) {
+  const next = Math.max(0, (quantities[itemId] || 0) + delta);
+  quantities[itemId] = next;
+  const qtyEl = document.getElementById(`qty_${itemId}`);
+  const card  = document.getElementById(`card_${itemId}`);
+  const plus  = card?.querySelector('.qty-btn.plus');
+  if (qtyEl) qtyEl.textContent = next;
+  if (card)  card.classList.toggle('selected', next > 0);
+  if (plus)  plus.classList.toggle('active', next > 0);
+  updateSummary();
+};
+
+function updateSummary() {
+  const t = i18n[currentLang];
+  const selected = Object.entries(quantities).filter(([,q]) => q > 0);
+  const btn = document.getElementById('submitBtn');
+  const sumEl = document.getElementById('submitSummary');
+  if (!btn) return;
+  if (!selected.length) { btn.disabled = true; sumEl.textContent = ''; return; }
+  btn.disabled = false;
+  const names = selected.map(([id, q]) => {
+    const item = findItem(id);
+    const name = item ? (currentLang==='zh' ? item.nameZh : currentLang==='en' ? item.nameEn : item.nameJa) : id;
+    return `${name}×${q}`;
+  });
+  sumEl.textContent = t.summaryText(selected.length, names.join('、'));
+}
+
+function findItem(fullId) {
+  for (const cat of categories) {
+    if (!cat.items) continue;
+    for (const [rawId, item] of Object.entries(cat.items)) {
+      if (`${cat.id}_${rawId}` === fullId) return item;
+    }
+  }
+  return null;
+}
+
+// ── Submit ────────────────────────────────────────────
+window.submitRequest = function() {
+  const selected = Object.entries(quantities).filter(([,q]) => q > 0);
+  if (!selected.length) return;
+  showNotice();
+};
+
+function showNotice() {
+  const t = i18n[currentLang];
+  document.getElementById('noticeTitle').textContent = t.noticeTitle;
+  document.getElementById('noticeSubtitle').textContent = t.noticeSubtitle;
+  document.getElementById('noticeConfirmBtn').textContent = t.noticeConfirm;
+  document.querySelector('.notice-cancel-btn').textContent = t.noticeCancel;
+  document.getElementById('noticeList').innerHTML = t.noticeItems.map((text, i) =>
+    `<div class="notice-item">
+      <div class="notice-item-num">${i + 1}</div>
+      <div class="notice-item-text">${text}</div>
+    </div>`
+  ).join('');
+  document.getElementById('noticeOverlay').classList.add('show');
+}
+
+window.closeNotice = function() {
+  document.getElementById('noticeOverlay').classList.remove('show');
+};
+
+window.confirmAndSubmit = async function() {
+  closeNotice();
+  const selected = Object.entries(quantities).filter(([,q]) => q > 0);
+  if (!selected.length) return;
+
+  document.getElementById('loadingOverlay').classList.add('show');
+
+  const items = selected.map(([id, qty]) => {
+    const item = findItem(id);
+    return { id, nameZh: item?.nameZh || item?.nameEn || item?.nameJa || id, nameEn: item?.nameEn||id, nameJa: item?.nameJa||id, qty };
+  });
+
+  const b = buildings[selectedBuilding] || {};
+  const requestData = {
+    building: selectedBuilding,
+    buildingZh: b.zh || '',
+    buildingEn: b.en || '',
+    room: roomNumber,
+    items,
+    remark: document.getElementById('remarkInput').value.trim(),
+    lang: currentLang,
+    status: 'pending',
+    createdAt: Date.now(),
+  };
+
+  try {
+    const newRef = await db.ref('requests').push(requestData);
+    currentFbKey = newRef.key;
+    currentRequestId = newRef.key.slice(-6).toUpperCase();
+    currentRequestRef = newRef.key;
+    document.getElementById('loadingOverlay').classList.remove('show');
+    showProgressScreen(items, requestData);
+    startProgressListener(newRef.key);
+    startDndListener(newRef.key);
+    registerGuestFcm(newRef.key, requestData.lang);
+  } catch(e) {
+    document.getElementById('loadingOverlay').classList.remove('show');
+    alert('送出失敗，請稍後再試');
+  }
+};
+
+// ── Progress Screen ───────────────────────────────────
+function showProgressScreen(items, requestData) {
+  currentRequestType = requestData.type || 'service';
+  document.getElementById('progressRefNum').textContent = currentRequestId;
+
+  // Items chips
+  const chipList = document.getElementById('progressItems');
+  chipList.innerHTML = items.map(item => {
+    const name = currentLang==='zh' ? item.nameZh : currentLang==='en' ? item.nameEn : item.nameJa;
+    return `<div class="summary-chip">${name}<span class="qty-tag">×${item.qty}</span></div>`;
+  }).join('');
+
+  // 確保 check icon 是正常的綠色 ✓ 狀態
+  resetProgressHeader();
+
+  renderTimeline({ status: 'pending', createdAt: requestData.createdAt });
+  applyI18n();
+  updateProgressHeaderCopy(currentRequestType);
+  showScreen('screen-progress');
+  window.scrollTo(0,0);
+}
+
+function stopProgressListener() {
+  if (progressListenerKey && progressListenerHandler) {
+    db.ref(`requests/${progressListenerKey}`).off('value', progressListenerHandler);
+  }
+  progressListenerKey = null;
+  progressListenerHandler = null;
+}
+
+function resetProgressHeader() {
+  const check = document.querySelector('.progress-check');
+  if (check) {
+    check.style.background = 'rgba(74,124,89,0.15)';
+    check.style.borderColor = '#4A7C59';
+    check.style.color = '';
+    check.textContent = '✓';
+  }
+  const title = document.querySelector('.progress-sent-title');
+  if (title) {
+    title.style.color = '';
+  }
+  const sub = document.querySelector('.progress-sent-sub');
+  if (sub) {
+    sub.style.color = '';
+  }
+}
+
+function getProgressCopy(type) {
+  const copies = {
+    service: {
+      zh: { title: '需求已送出', sub: '我們的服務人員將盡快為您送達', color: '#4A7C59' },
+      en: { title: 'Request Submitted', sub: 'Our staff will deliver your items shortly.', color: '#4A7C59' },
+      ja: { title: '送信完了', sub: 'スタッフが速やかにお届けいたします。', color: '#4A7C59' },
+    },
+    repair: {
+      zh: { title: '報修需求已送出', sub: '服務人員將盡快前往處理', color: '#D96B6B' },
+      en: { title: 'Repair Request Submitted', sub: 'Our staff will attend to the issue shortly.', color: '#D96B6B' },
+      ja: { title: '修理リクエスト送信完了', sub: 'スタッフが対応いたします。', color: '#D96B6B' },
+    },
+    room_issue: {
+      zh: { title: '需求已送出', sub: '房務人員將盡快前往協助', color: '#C9A96E' },
+      en: { title: 'Request Submitted', sub: 'Housekeeping will assist shortly.', color: '#C9A96E' },
+      ja: { title: 'ご依頼を受け付けました', sub: '房務スタッフがまもなく対応します。', color: '#C9A96E' },
+    },
+  };
+  return (copies[type] || copies.service)[currentLang];
+}
+
+function updateProgressHeaderCopy(type) {
+  const copy = getProgressCopy(type || 'service');
+  const sentTitle = document.querySelector('.progress-sent-title');
+  const sentSub = document.querySelector('.progress-sent-sub');
+  const check = document.querySelector('.progress-check');
+  if (sentTitle) sentTitle.textContent = copy.title;
+  if (sentSub) sentSub.textContent = copy.sub;
+  if (check && type && type !== 'service') {
+    check.style.background = `${copy.color}26`;
+    check.style.borderColor = copy.color;
+    check.textContent = '✓';
+    check.style.color = copy.color;
+  }
+}
+
+function getRequestTimelineText(req) {
+  const type = req.type || currentRequestType || 'service';
+  if (type === 'repair') {
+    return {
+      sentSub: currentLang === 'en'
+        ? 'We have received your repair request and are arranging staff'
+        : currentLang === 'ja'
+        ? '修理リクエストを受け付けました。スタッフを手配しております'
+        : '我們已收到報修需求，正在安排服務人員',
+      assignedSub: currentLang === 'en'
+        ? 'Our staff is confirming the issue'
+        : currentLang === 'ja'
+        ? 'スタッフが状況を確認しています'
+        : '服務人員正在確認問題狀況',
+      assignedWait: currentLang === 'en' ? 'Awaiting staff assignment' : currentLang === 'ja' ? 'スタッフ手配中' : '等待服務人員接單',
+      goingSub: currentLang === 'en'
+        ? 'Our staff is heading to your room'
+        : currentLang === 'ja'
+        ? 'スタッフがお部屋へ向かっています'
+        : '服務人員正在前往您的房間',
+      goingWait: currentLang === 'en' ? 'Heading to your room' : currentLang === 'ja' ? 'お部屋へ向かっています' : '正在前往',
+      doneSub: currentLang === 'en'
+        ? 'Thank you for your patience. Feel free to submit another repair request anytime.'
+        : currentLang === 'ja'
+        ? 'お待たせいたしました。必要があれば再度ご依頼ください'
+        : '感謝您的耐心等候，如有其他報修需求歡迎再次送出',
+      waitDone: i18n[currentLang].timelineWaitDone,
+    };
+  }
+  if (type === 'room_issue') {
+    return {
+      sentSub: currentLang === 'en'
+        ? 'We have received your room issue report and are arranging housekeeping'
+        : currentLang === 'ja'
+        ? '客室の問題報告を受け付けました。房務スタッフを手配しております'
+        : '我們已收到客房問題反映，正在安排房務人員',
+      assignedSub: currentLang === 'en'
+        ? 'Housekeeping is confirming the room condition'
+        : currentLang === 'ja'
+        ? '房務スタッフが客室の状況を確認しています'
+        : '房務人員正在確認房況',
+      assignedWait: currentLang === 'en' ? 'Awaiting housekeeping assignment' : currentLang === 'ja' ? '房務スタッフ手配中' : '等待房務人員接單',
+      goingSub: currentLang === 'en'
+        ? 'Housekeeping is heading to your room'
+        : currentLang === 'ja'
+        ? '房務スタッフがお部屋へ向かっています'
+        : '房務人員正在前往您的房間',
+      goingWait: currentLang === 'en' ? 'Housekeeping on the way' : currentLang === 'ja' ? '房務スタッフが向かっています' : '房務人員準備前往',
+      doneSub: currentLang === 'en'
+        ? 'Thank you for your patience. Please let us know if you need more assistance.'
+        : currentLang === 'ja'
+        ? 'ご不便をおかけしました。ほかに必要なことがあればお知らせください'
+        : '感謝您的耐心等候，如仍需協助歡迎再次反映',
+      waitDone: currentLang === 'en' ? 'Awaiting housekeeping completion' : currentLang === 'ja' ? '対応完了待ち' : '等待處理完成',
+    };
+  }
+  return {
+    sentSub: i18n[currentLang].timelineSentSub,
+    assignedSub: i18n[currentLang].timelineAssignedSub(),
+    assignedWait: i18n[currentLang].timelineAssignedWait,
+    goingSub: i18n[currentLang].timelineGoingSub(),
+    goingWait: i18n[currentLang].timelineGoingWait,
+    doneSub: i18n[currentLang].timelineDoneSub,
+    waitDone: i18n[currentLang].timelineWaitDone,
+  };
+}
+
+function startProgressListener(fbKey) {
+  stopProgressListener();
+  progressListenerKey = fbKey;
+
+  // Listen to total pending/assigned/processing requests to compute dynamic queue delay
+  categoriesListAllTimer = db.ref('requests').on('value', (snap) => {
+    let pendingCount = 0;
+    if (snap.exists()) {
+      pendingCount = Object.values(snap.val()).filter(r => r.status === 'pending' || r.status === 'assigned' || r.status === 'processing').length;
+    }
+    window.lastPendingCount = pendingCount;
+    updateLiveETAFromState();
+  });
+
+  progressListenerHandler = (snap) => {
+    if (snap.exists()) {
+      window.currentRequestData = snap.val();
+      renderTimeline(snap.val());
+      updateLiveETAFromState();
+    }
+  };
+  db.ref(`requests/${fbKey}`).on('value', progressListenerHandler);
+}
+
+function stopProgressListener() {
+  if (progressListenerKey) {
+    db.ref(`requests/${progressListenerKey}`).off('value', progressListenerHandler);
+    if (categoriesListAllTimer) {
+      db.ref('requests').off('value', categoriesListAllTimer);
+    }
+    progressListenerKey = null;
+  }
+}
+
+function updateLiveETAFromState() {
+  const card = document.getElementById('liveEtaCard');
+  const textEl = document.getElementById('liveEtaText');
+  const titleEl = document.getElementById('liveEtaTitle');
+  if (!card || !textEl) return;
+
+  const req = window.currentRequestData;
+  if (!req || req.status === 'done' || req.status === 'cancelled') {
+    card.style.display = 'none';
+    return;
+  }
+
+  // Calculate dynamic ETA based on global queue size
+  const queueSize = window.lastPendingCount || 0;
+  let baseMin = 10;
+  let baseMax = 15;
+  if (queueSize > 1) {
+    baseMin += (queueSize - 1) * 2;
+    baseMax += (queueSize - 1) * 3;
+  }
+  // Clamp boundaries nicely
+  baseMin = Math.min(40, Math.max(8, baseMin));
+  baseMax = Math.min(50, Math.max(12, baseMax));
+
+  card.style.display = 'flex';
+
+  const labels = {
+    zh: {
+      title: '⏱️ 預估送達時間 · EXPECTED LIVE ETA',
+      text: `根據目前房務排單，預估您的需求品將於 ${baseMin}-${baseMax} 分鐘內送達。`,
+      repairText: `維修派遣已受理，技師預估將於 ${baseMin + 5}-${baseMax + 10} 分鐘內抵達。`,
+      issueText: `客房狀況反映已受理，房務督導預估將於 ${baseMin}-${baseMax + 5} 分鐘內抵達房門。`
+    },
+    en: {
+      title: '⏱️ EXPECTED LIVE ETA',
+      text: `Based on current queue, your items are estimated to arrive in ${baseMin}-${baseMax} minutes.`,
+      repairText: `Maintenance is dispatched, technician is expected to arrive in ${baseMin + 5}-${baseMax + 10} minutes.`,
+      issueText: `Your report is dispatched, housekeeping lead is expected to arrive in ${baseMin}-${baseMax + 5} minutes.`
+    },
+    ja: {
+      title: '⏱️ お届け時間予測',
+      text: `現在の混雑状況に基づき、アメニティは約 ${baseMin}-${baseMax} 分でお届けの見込みとなります。`,
+      repairText: `客室修理チームが自動手配されました。約 ${baseMin + 5}-${baseMax + 10} 分で訪問予定です。`,
+      issueText: `お部屋のトラブル対応につき、スタッフが約 ${baseMin}-${baseMax + 5} 分で到着いたします。`
+    },
+    ko: {
+      title: '⏱️ 예상 도착 시간 (LIVE ETA)',
+      text: `현재 대기 건수 기준, 어메니티는 완료되기까지 약 ${baseMin}-${baseMax}분 소요될 예정입니다.`,
+      repairText: `정비팀 직원이 배정되었습니다. 수리 기사가 약 ${baseMin + 5}-${baseMax + 10}분 내에 방문합니다.`,
+      issueText: `객실 비정상 조치에 관해 룸메이드 리더가 약 ${baseMin}-${baseMax + 5}분 내에 방문합니다.`
+    }
+  };
+
+  const l = labels[currentLang] || labels['zh'];
+  if (titleEl) titleEl.textContent = l.title;
+  if (req.type === 'repair') {
+    textEl.textContent = l.repairText;
+  } else if (req.type === 'room_issue') {
+    textEl.textContent = l.issueText;
+  } else {
+    textEl.textContent = l.text;
+  }
+}
+
+function renderTimeline(req) {
+  const t = i18n[currentLang];
+  const timelineText = getRequestTimelineText(req);
+  const status = req.status || 'pending';
+
+  // 缺貨取消：顯示專用畫面
+  if (status === 'cancelled') {
+    const tl = document.getElementById('progressTimeline');
+    if (tl) tl.innerHTML = `
+      <div class="timeline-item">
+        <div class="timeline-dot done">✓</div>
+        <div class="timeline-content">
+        <div class="timeline-title">${t.timelineSent}</div>
+        <div class="timeline-sub" style="opacity:0.5">${timelineText.sentSub}</div>
+      </div>
+    </div>
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background:rgba(217,107,107,0.2);border:2px solid #D96B6B;color:#D96B6B;font-size:16px">✕</div>
+        <div class="timeline-content">
+          <div class="timeline-title" style="color:#D96B6B">${t.timelineCancelled}</div>
+          <div class="timeline-sub" style="color:rgba(255,255,255,0.5);line-height:1.6">${t.timelineCancelledSub}</div>
+        </div>
+      </div>`;
+    // 更新頂部 check icon 為取消圖示
+    const check = document.querySelector('.progress-check');
+    if (check) {
+      check.style.background = 'rgba(217,107,107,0.15)';
+      check.style.borderColor = '#D96B6B';
+      check.textContent = '✕';
+      check.style.color = '#D96B6B';
+    }
+    const sentTitle = document.querySelector('.progress-sent-title');
+    if (sentTitle) { sentTitle.textContent = t.timelineCancelled; sentTitle.style.color = '#D96B6B'; }
+    const sentSub = document.querySelector('.progress-sent-sub');
+    if (sentSub) sentSub.textContent = t.timelineCancelledSub;
+    return;
+  }
+  const assignedName = req.assignedTo || '';
+  const assignedTime = req.assignedAt
+    ? new Date(req.assignedAt).toLocaleString('zh-TW', { hour:'2-digit', minute:'2-digit', hour12:false })
+    : '';
+  const createdTime = req.createdAt
+    ? new Date(req.createdAt).toLocaleString('zh-TW', { hour:'2-digit', minute:'2-digit', hour12:false })
+    : '';
+  const doneTime = req.updatedAt && status === 'done'
+    ? new Date(req.updatedAt).toLocaleString('zh-TW', { hour:'2-digit', minute:'2-digit', hour12:false })
+    : '';
+
+  // 非 cancelled 狀態，確保 header 是正常樣式
+  resetProgressHeader();
+
+  // 步驟狀態（assigned = 已接單確認庫存中，processing = 前往中）
+  const step1Done = true; // 已送出
+  const step2Done = status === 'assigned' || status === 'processing' || status === 'done';
+  const step2Active = false;
+  const step3Done = status === 'processing' || status === 'done';
+  const step3Active = status === 'processing';
+  const step4Done = status === 'done';
+
+  const tl = document.getElementById('progressTimeline');
+  if (!tl) return;
+
+  function dot(done, active) {
+    if (done) return '<div class="timeline-dot done">✓</div>';
+    if (active) return '<div class="timeline-dot active">⟳</div>';
+    return '<div class="timeline-dot waiting">○</div>';
+  }
+
+  function titleCls(done, active) {
+    return (!done && !active) ? 'dim' : '';
+  }
+
+  tl.innerHTML = `
+    <div class="timeline-item">
+      ${dot(true, false)}
+      <div class="timeline-content">
+        <div class="timeline-title">${t.timelineSent}</div>
+        <div class="timeline-sub">${timelineText.sentSub}${createdTime ? '<br><span style="opacity:0.5;font-size:10px">'+createdTime+'</span>' : ''}</div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      ${dot(step2Done, false)}
+      <div class="timeline-content">
+        <div class="timeline-title ${titleCls(step2Done, false)}">${t.timelineAssigned}</div>
+        <div class="timeline-sub">
+          ${step2Done && assignedName
+            ? timelineText.assignedSub + (assignedTime ? '<br><span style="opacity:0.5;font-size:10px">'+assignedTime+'</span>' : '')
+            : timelineText.assignedWait}
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      ${dot(step3Done, step2Active)}
+      <div class="timeline-content">
+        <div class="timeline-title ${titleCls(step3Done, step2Active)}">${t.timelineGoing}</div>
+        <div class="timeline-sub">
+          ${step3Done && assignedName
+            ? timelineText.goingSub
+            : step2Active
+            ? timelineText.goingSub
+            : timelineText.goingWait}
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      ${dot(step4Done, false)}
+      <div class="timeline-content">
+        <div class="timeline-title ${titleCls(step4Done, false)}">${t.timelineDone}</div>
+        <div class="timeline-sub">
+          ${step4Done
+            ? timelineText.doneSub + (doneTime ? '<br><span style="opacity:0.5;font-size:10px">'+doneTime+'</span>' : '')
+            : timelineText.waitDone}
+        </div>
+      </div>
+    </div>`;
+
+  // 完成時加慶祝效果
+  if (step4Done) {
+    const check = document.querySelector('.progress-check');
+    if (check) {
+      check.style.background = 'rgba(91,173,123,0.2)';
+      check.style.borderColor = '#5BAD7B';
+      check.textContent = '✓';
+    }
+  }
+}
+
+// ── Copy Ref ──────────────────────────────────────────
+// ── 客人端 FCM 推播 ──────────────────────────────────────
+async function registerGuestFcm(fbKey, lang) {
+  if (!messaging) return;
+  if (!('Notification' in window)) return; // iOS 不支援
+
+  try {
+    let perm = Notification.permission;
+    if (perm === 'default') perm = await Notification.requestPermission();
+    if (perm !== 'granted') return;
+
+    let swReg = null;
+    if ('serviceWorker' in navigator) {
+      try {
+        swReg = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
+        await navigator.serviceWorker.ready;
+      } catch(e) {}
+    }
+
+    const token = await messaging.getToken({
+      vapidKey: GUEST_VAPID_KEY,
+      serviceWorkerRegistration: swReg || undefined,
+    });
+
+    if (token) {
+      await db.ref(`guest_tokens/${fbKey}`).set({
+        token,
+        lang: lang || 'zh',
+        createdAt: Date.now(),
+      });
+    }
+  } catch(e) {
+    console.warn('Guest FCM failed:', e);
+  }
+}
+
+// ── DND Banner ────────────────────────────────────────────
+let dndBannerTimer = null;
+
+function showDndBanner(lang) {
+  const msgs = {
+    zh: { title: '🔴 請關閉請勿打擾燈號', body: '服務人員已在門外等候，請關閉房門的請勿打擾燈號，以便順利送達備品' },
+    en: { title: '🔴 Please Turn Off Do Not Disturb', body: 'Our staff is waiting outside. Please turn off the Do Not Disturb light.' },
+    ja: { title: '🔴 DNDランプをオフに', body: 'スタッフがドアの外でお待ちしております。DNDランプをオフにしてください。' },
+  };
+  const msg = msgs[lang || currentLang] || msgs['zh'];
+  document.getElementById('dndTitle').textContent = msg.title;
+  document.getElementById('dndBody').textContent = msg.body;
+  document.getElementById('dndBanner').classList.add('show');
+  clearTimeout(dndBannerTimer);
+  dndBannerTimer = setTimeout(closeDndBanner, 15000);
+}
+
+window.closeDndBanner = function() {
+  document.getElementById('dndBanner').classList.remove('show');
+};
+
+function stopDndListener() {
+  if (dndListenerHandler) {
+    db.ref('dnd_notify').off('value', dndListenerHandler);
+  }
+  dndListenerHandler = null;
+}
+
+// DND 監聽由 startDndListener 負責，在訂單送出後才啟動
+function startDndListener(fbKey) {
+  stopDndListener();
+  // 用 on('value') 監聽全部資料，過濾出此訂單的 DND 通知
+  // 比 orderByChild 更可靠，避免 index 問題
+  dndListenerHandler = (snap) => {
+    if (!snap.exists()) return;
+    snap.forEach((child) => {
+      const data = child.val();
+      if (data && data.requestId === fbKey && !data.seenByGuest) {
+        showDndBanner(data.lang || currentLang);
+        child.ref.update({ seenByGuest: true });
+      }
+    });
+  };
+  db.ref('dnd_notify').on('value', dndListenerHandler);
+}
+
+// Service Worker 訊息監聽（背景推播點擊後）
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'dnd') {
+      showDndBanner(currentLang);
+    }
+  });
+}
+
+window.copyRef = function() {
+  const t = i18n[currentLang];
+  navigator.clipboard?.writeText(currentRequestId).catch(()=>{});
+  const btn = document.querySelector('.copy-btn');
+  if (btn) { btn.textContent = t.copyDone; setTimeout(()=>{ btn.textContent = t.copyBtn; }, 2000); }
+};
+
+// ── Lookup ────────────────────────────────────────────
+window.doLookup = async function() {
+  const t = i18n[currentLang];
+  const code = document.getElementById('lookupInput').value.trim().toUpperCase();
+  if (code.length < 4) return;
+  document.getElementById('loadingOverlay').classList.add('show');
+  stopLookupListener();
+
+  try {
+    const snap = await db.ref('requests').once('value');
+    document.getElementById('loadingOverlay').classList.remove('show');
+    if (!snap.exists()) {
+      document.getElementById('lookupResult').innerHTML = `<div class="lookup-empty">${t.lookupNotFound}</div>`;
+      return;
+    }
+    const all = snap.val();
+    const found = Object.entries(all).find(([key]) => key.slice(-6).toUpperCase() === code);
+    if (!found) {
+      document.getElementById('lookupResult').innerHTML = `<div class="lookup-empty">${t.lookupNotFound}</div>`;
+      return;
+    }
+    const [fbKey, req] = found;
+    renderLookupResult(fbKey, req, code);
+  } catch(e) {
+    document.getElementById('loadingOverlay').classList.remove('show');
+    document.getElementById('lookupResult').innerHTML = `<div class="lookup-empty">查詢失敗，請稍後再試</div>`;
+  }
+};
+
+function stopLookupListener() {
+  if (lookupListenerKey && lookupListenerHandler) {
+    db.ref(`requests/${lookupListenerKey}`).off('value', lookupListenerHandler);
+  }
+  lookupListenerKey = null;
+  lookupListenerHandler = null;
+}
+
+function renderLookupResult(fbKey, req, code) {
+  const t = i18n[currentLang];
+  const statusLabel = { pending: t.statusPending, processing: t.statusProcessing, done: t.statusDone }[req.status] || req.status;
+  const statusColor = { pending: '#E8A94A', processing: '#5B9BD5', done: '#5BAD7B' }[req.status] || '#888';
+  const buildingName = currentLang==='zh' ? req.buildingZh : currentLang==='en' ? req.buildingEn : (req.buildingZh || req.buildingEn || '');
+  const time = new Date(req.createdAt).toLocaleString('zh-TW', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit', hour12:false });
+  const items = (req.items || []).map(item => {
+    const name = currentLang==='zh' ? item.nameZh : currentLang==='en' ? item.nameEn : item.nameJa;
+    return `<div class="summary-chip">${name}<span class="qty-tag">×${item.qty}</span></div>`;
+  }).join('');
+
+  // Build a mini timeline (四步驟)
+  const status = req.status;
+  const step2d = status === 'processing' || status === 'done';
+  const step3d = status === 'done';
+  const miniTl = [
+    { label: t.timelineSent,     done: true,   active: false },
+    { label: t.timelineAssigned, done: step2d,  active: false },
+    { label: t.timelineGoing,    done: step3d,  active: status==='processing' },
+    { label: t.timelineDone,     done: step3d,  active: false },
+  ].map(s => `
+    <div class="timeline-item">
+      <div class="timeline-dot ${s.done ? 'done' : s.active ? 'active' : 'waiting'}">${s.done ? '✓' : s.active ? '⟳' : '○'}</div>
+      <div class="timeline-content"><div class="timeline-title ${(!s.done&&!s.active)?'dim':''}">${s.label}</div></div>
+    </div>`).join('');
+
+  document.getElementById('lookupResult').innerHTML = `
+    <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:16px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.3);margin-bottom:3px">${buildingName} · ${req.room || ''} 房</div>
+          <div style="font-family:'Noto Sans TC',sans-serif;font-size:22px;color:var(--gold);letter-spacing:0.15em">${code}</div>
+        </div>
+        <div style="background:rgba(${statusColor.slice(1).match(/../g).map(h=>parseInt(h,16)).join(',')},0.15);border:1px solid ${statusColor}33;color:${statusColor};font-size:12px;padding:5px 12px;border-radius:20px">
+          ${statusLabel}
+        </div>
+      </div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.25);margin-bottom:12px">📅 ${time}</div>
+      <div class="timeline" style="margin-bottom:12px">${miniTl}</div>
+      <div class="items-summary-title" style="margin-bottom:8px">${t.itemsTitle}</div>
+      <div class="summary-chip-list">${items}</div>
+    </div>`;
+
+  // Start live listener for lookup result
+  stopLookupListener();
+  lookupListenerKey = fbKey;
+  lookupListenerHandler = (snap) => {
+    if (!snap.exists()) return;
+    const updated = snap.val();
+    if (updated.status !== req.status) {
+      req.status = updated.status;
+      renderLookupResult(fbKey, req, code);
+    }
+  };
+  db.ref(`requests/${fbKey}`).on('value', lookupListenerHandler);
+}
+
+window.goBackFromLookup = function() {
+  stopLookupListener();
+  if (document.getElementById('screen-progress').classList.contains('active-before-lookup')) {
+    showScreen('screen-progress');
+  } else {
+    showScreen('screen-welcome');
+  }
+};
+
+// ── Reset ─────────────────────────────────────────────
+// ── Repair ───────────────────────────────────────────────
+let repairCategories = [];
+let selectedRepairItems = new Set(); // Set of item full IDs
+
+function loadRepairCategories() {
+  if (repairCategoriesListenerHandler) {
+    db.ref('repair_categories').off('value', repairCategoriesListenerHandler);
+  }
+  repairCategoriesListenerHandler = (snap) => {
+    if (snap.exists()) {
+      const data = snap.val();
+      repairCategories = Object.entries(data)
+        .map(([id, cat]) => ({ id, ...cat }))
+        .filter(c => c.active !== false)
+        .sort((a, b) => (a.order || 0) - (b.order || 0));
+    } else {
+      repairCategories = [];
+    }
+    renderRepairCategories();
+  };
+  db.ref('repair_categories').on('value', repairCategoriesListenerHandler);
+}
+
+function repairItemHtml(item) {
+  const itemName = currentLang === 'zh' ? item.nameZh : currentLang === 'en' ? item.nameEn : item.nameJa;
+  const selected = selectedRepairItems.has(item.id);
+  const selClass = selected ? 'selected' : '';
+  const checkText = selected ? 'v' : '';
+  return `<div class="repair-item-card ${selClass}" id="repCard_${item.id}" onclick="toggleRepairItem('${item.id}')"><span class="repair-item-icon">${item.icon || ''}</span><span class="repair-item-name">${itemName}</span><div class="repair-item-check" id="repCheck_${item.id}">${checkText}</div></div>`;
+}
+
+function renderRepairCategories() {
+  const container = document.getElementById('repairCategoriesContainer');
+  if (!container) return;
+  if (!repairCategories.length) {
+    container.innerHTML = '<div class="empty-categories" style="color:rgba(255,255,255,0.3)">載入中…</div>';
+    return;
+  }
+  container.innerHTML = repairCategories.map(cat => {
+    const catName = currentLang === 'zh' ? cat.nameZh : currentLang === 'en' ? cat.nameEn : cat.nameJa;
+    const items = cat.items ? Object.entries(cat.items).map(([id, item]) => ({
+      id: `${cat.id}__${id}`, catId: cat.id, rawId: id, ...item
+    })) : [];
+    if (!items.length) return '';
+    const itemsHtml = items.map(item => repairItemHtml(item)).join('');
+    return `<div class="divider" style="padding:14px 20px 6px"><div class="divider-line" style="background:rgba(217,107,107,0.2)"></div><div class="divider-dot" style="background:#D96B6B"></div><div class="divider-line" style="background:rgba(217,107,107,0.2)"></div></div><div class="repair-category-label">${cat.icon || ''} ${catName}</div><div class="repair-items-grid">${itemsHtml}</div>`;
+  }).join('');
+}
+
+window.toggleRepairItem = function(itemId) {
+  if (selectedRepairItems.has(itemId)) {
+    selectedRepairItems.delete(itemId);
+  } else {
+    selectedRepairItems.add(itemId);
+  }
+  const card = document.getElementById(`repCard_${itemId}`);
+  const check = document.getElementById(`repCheck_${itemId}`);
+  if (card) card.classList.toggle('selected', selectedRepairItems.has(itemId));
+  if (check) check.textContent = selectedRepairItems.has(itemId) ? 'v' : '';
+  updateRepairSummary();
+};
+
+function updateRepairSummary() {
+  const t = i18n[currentLang];
+  const btn = document.getElementById('repairSubmitBtn');
+  const sumEl = document.getElementById('repairSubmitSummary');
+  if (!btn) return;
+  if (selectedRepairItems.size === 0) {
+    btn.disabled = true;
+    sumEl.textContent = '';
+    return;
+  }
+  btn.disabled = false;
+  const names = Array.from(selectedRepairItems).map(id => {
+    const item = findRepairItem(id);
+    return item ? (currentLang === 'zh' ? item.nameZh : currentLang === 'en' ? item.nameEn : item.nameJa) : id;
+  });
+  sumEl.textContent = t.summaryText(selectedRepairItems.size, names.join('、'));
+}
+
+function findRepairItem(fullId) {
+  for (const cat of repairCategories) {
+    if (!cat.items) continue;
+    for (const [rawId, item] of Object.entries(cat.items)) {
+      if (`${cat.id}__${rawId}` === fullId) return item;
+    }
+  }
+  return null;
+}
+
+function setupSubmittedRequest(fbKey, requestData, items) {
+  currentRequestId = fbKey.slice(-6).toUpperCase();
+  currentFbKey = fbKey;
+  currentRequestRef = fbKey;
+  stopLookupListener();
+  showProgressScreen(items, requestData);
+  startProgressListener(fbKey);
+  startDndListener(fbKey);
+  registerGuestFcm(fbKey, requestData.lang);
+}
+
+async function submitGuestRequest(requestData, items) {
+  document.getElementById('loadingOverlay').classList.add('show');
+  try {
+    const newRef = await db.ref('requests').push(requestData);
+    setupSubmittedRequest(newRef.key, requestData, items);
+    document.getElementById('loadingOverlay').classList.remove('show');
+  } catch (e) {
+    document.getElementById('loadingOverlay').classList.remove('show');
+    alert('送出失敗，請稍後再試');
+  }
+}
+
+window.submitRepairRequest = async function() {
+  if (selectedRepairItems.size === 0) return;
+
+  const items = Array.from(selectedRepairItems).map(id => {
+    const item = findRepairItem(id);
+    return { id, nameZh: item?.nameZh || id, nameEn: item?.nameEn || id, nameJa: item?.nameJa || id, qty: 1 };
+  });
+
+  const b = buildings[selectedBuilding] || {};
+  const requestData = {
+    type: 'repair',
+    building: selectedBuilding,
+    buildingZh: b.zh || '',
+    buildingEn: b.en || '',
+    room: roomNumber,
+    items,
+    remark: document.getElementById('repairRemarkInput').value.trim(),
+    lang: currentLang,
+    status: 'pending',
+    createdAt: Date.now(),
+  };
+  await submitGuestRequest(requestData, items);
+};
+
+function showRepairProgressScreen(items, requestData) {
+  showProgressScreen(items, requestData);
+}
+
+// 進入報修畫面時更新館別房號顯示
+window.showRepairScreen = function() {
+  initializeRequestScreen({
+    screenId: 'screen-repair',
+    buildingBadgeId: 'repairBuildingBadge',
+    roomDisplayId: 'repairRoomDisplay',
+    resetSelection: () => selectedRepairItems.clear(),
+    renderScreen: renderRepairCategories,
+    updateSubmitState: updateRepairSummary,
+    remarkInputId: 'repairRemarkInput',
+  });
+};
+
+function roomIssueItemHtml(item) {
+  const itemName = currentLang === 'zh' ? item.zh : currentLang === 'en' ? item.en : item.ja;
+  const selected = selectedRoomIssueId === item.id;
+  return `<div class="repair-item-card ${selected ? 'selected' : ''}" id="roomIssueCard_${item.id}" onclick="selectRoomIssue('${item.id}')"><span class="repair-item-icon">${item.icon}</span><span class="repair-item-name">${itemName}</span><div class="repair-item-check">${selected ? '✓' : ''}</div></div>`;
+}
+
+function renderRoomIssueCategories() {
+  const container = document.getElementById('roomIssueCategoriesContainer');
+  if (!container) return;
+  const label = currentLang === 'en' ? 'Room Issue Type' : currentLang === 'ja' ? '客室状況カテゴリ' : '問題類型';
+  container.innerHTML = `
+    <div class="divider" style="padding:14px 20px 6px"><div class="divider-line"></div><div class="divider-dot"></div><div class="divider-line"></div></div>
+    <div class="repair-category-label">${label}</div>
+    <div class="repair-items-grid">${roomIssueCategories.map(item => roomIssueItemHtml(item)).join('')}</div>`;
+}
+
+window.selectRoomIssue = function(id) {
+  selectedRoomIssueId = selectedRoomIssueId === id ? '' : id;
+  renderRoomIssueCategories();
+  updateRoomIssueSubmitState();
+};
+
+function updateRoomIssueSubmitState() {
+  const btn = document.getElementById('roomIssueSubmitBtn');
+  const sumEl = document.getElementById('roomIssueSubmitSummary');
+  if (!btn || !sumEl) return;
+  const selected = roomIssueCategories.find(item => item.id === selectedRoomIssueId);
+  if (!selected) {
+    btn.disabled = true;
+    sumEl.textContent = '';
+    return;
+  }
+  btn.disabled = false;
+  const name = currentLang === 'zh' ? selected.zh : currentLang === 'en' ? selected.en : selected.ja;
+  sumEl.textContent = i18n[currentLang].roomIssueSummaryText(name);
+}
+
+window.submitRoomIssueRequest = async function() {
+  const selected = roomIssueCategories.find(item => item.id === selectedRoomIssueId);
+  if (!selected) return;
+
+  const now = Date.now();
+  const b = buildings[selectedBuilding] || {};
+  const requestData = {
+    type: 'room_issue',
+    roomIssueCategory: selected.id,
+    roomIssueLabelZh: selected.zh,
+    roomIssueLabelEn: selected.en,
+    roomIssueLabelJa: selected.ja,
+    items: [{ id: selected.id, icon: selected.icon, nameZh: selected.zh, nameEn: selected.en, nameJa: selected.ja, qty: 1 }],
+    building: selectedBuilding,
+    buildingZh: b.zh || '',
+    buildingEn: b.en || '',
+    room: roomNumber,
+    remark: document.getElementById('roomIssueRemarkInput').value.trim(),
+    lang: currentLang,
+    status: 'pending',
+    createdAt: now,
+    updatedAt: now,
+    source: 'guest',
+    sla: {
+      unassignedAlertAt: now + 2 * 60 * 1000,
+      unresolvedAlertAt: null,
+    },
+    escalation: {
+      unassignedAlerted: false,
+      unresolvedAlerted: false,
+    },
+  };
+  await submitGuestRequest(requestData, requestData.items);
+};
+
+window.showRoomIssueScreen = function() {
+  initializeRequestScreen({
+    screenId: 'screen-room-issue',
+    buildingBadgeId: 'roomIssueBuildingBadge',
+    roomDisplayId: 'roomIssueRoomDisplay',
+    resetSelection: () => { selectedRoomIssueId = ''; },
+    renderScreen: renderRoomIssueCategories,
+    updateSubmitState: updateRoomIssueSubmitState,
+    remarkInputId: 'roomIssueRemarkInput',
+  });
+};
+
+window.resetAndGoHome = function() {
+  quantities = {};
+  selectedRoomIssueId = '';
+  currentRequestType = 'service';
+  document.getElementById('remarkInput').value = '';
+  const roomIssueRemarkInput = document.getElementById('roomIssueRemarkInput');
+  if (roomIssueRemarkInput) roomIssueRemarkInput.value = '';
+  renderCategories();
+  renderRoomIssueCategories();
+  updateSummary();
+  updateRoomIssueSubmitState();
+  showScreen('screen-main');
+  window.scrollTo(0,0);
+};
+
+let staffClickCount = 0;
+window.handleStaffClick = function() {
+  staffClickCount++;
+  if (staffClickCount >= 5) {
+    document.querySelectorAll('.staff-only-el').forEach(el => {
+      const isNav = el.id === 'staff-home-btn-nav';
+      el.style.setProperty('display', isNav ? 'inline-block' : 'flex', 'important');
+    });
+    alert('🔒 已啟用員工專用返回主選單通道 (Staff channel enabled)');
+    staffClickCount = 0;
+  }
+};
+
+// Init：等 DOM 完全載入後再執行
+document.addEventListener('DOMContentLoaded', function() {
+  applyI18n();
+  // 自動登入（從 URL 參數帶入房號）
+  const p = new URLSearchParams(window.location.search);
+  const urlRoom = p.get('room') || p.get('r');
+  if (urlRoom) {
+    // URL 帶有房號時跳過館別選擇畫面
+    roomNumber = urlRoom;
+    document.getElementById('roomDisplay').textContent = roomNumber;
+    loadCategories();
+    loadRepairCategories();
+    loadFacilities();
+    showScreen('screen-main');
+  } else {
+    loadFacilities();
+  }
+
+  // 驗證是否為員工身分有參數
+  const isStaffMode = p.get('staff') === 'true';
+  if (isStaffMode) {
+    document.querySelectorAll('.staff-only-el').forEach(el => {
+      const isNav = el.id === 'staff-home-btn-nav';
+      el.style.setProperty('display', isNav ? 'inline-block' : 'flex', 'important');
+    });
+  }
+});
+</script>
+</body>
+</html>
